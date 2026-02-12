@@ -7,11 +7,14 @@ public final class GymClassMapper {
     private GymClassMapper() {}
 
     public static GymClassResponse toResponse(GymClass gymClass) {
+        if(gymClass == null) {
+            return null;
+        }
         return new GymClassResponse(
                 gymClass.getId(),
-                gymClass.getClassType().getName(),
-                gymClass.getInstructor().getFirstName(),
-                gymClass.getInstructor().getLastName(),
+                gymClass.getClassType() != null ? gymClass.getClassType().getName() : null,
+                gymClass.getInstructor() != null ? gymClass.getInstructor().getFirstName() : null,
+                gymClass.getInstructor() != null ? gymClass.getInstructor().getLastName() : null,
                 gymClass.getStartTime(),
                 gymClass.getEndTime(),
                 gymClass.getCapacity(),

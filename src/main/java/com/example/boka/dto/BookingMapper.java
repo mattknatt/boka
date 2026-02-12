@@ -7,6 +7,9 @@ public final class BookingMapper {
     private BookingMapper() {}
 
     public static BookingResponse toResponse(Booking booking) {
+        if(booking == null) {
+            return null;
+        }
         return new BookingResponse(
                 booking.getId(),
                 booking.getUser().getId(),

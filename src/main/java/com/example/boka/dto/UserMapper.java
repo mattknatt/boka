@@ -7,6 +7,9 @@ public final class UserMapper {
     private UserMapper() {}
 
     public static UserResponse toResponse(User user) {
+        if(user == null) {
+            return null;
+        }
         return new UserResponse(
                 user.getId(),
                 user.getEmail(),
