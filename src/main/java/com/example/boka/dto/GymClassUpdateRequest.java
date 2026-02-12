@@ -8,14 +8,11 @@ import java.time.LocalDateTime;
 
 public record GymClassUpdateRequest(
 
-        @Future
-        LocalDateTime startTime,
+        @Future LocalDateTime startTime,
 
-        @Future
-        LocalDateTime endTime,
+        @Future LocalDateTime endTime,
 
-        @Positive
-        Integer capacity,
+        @Positive Integer capacity,
 
         ClassStatus status
 ) {}

@@ -8,18 +8,13 @@ import java.time.LocalDateTime;
 
 public record GymClassCreateRequest(
 
-        @NotNull
-        Long classTypeId,
+        @NotNull Long classTypeId,
 
-        @NotNull
-        Long instructorId,
+        @NotNull Long instructorId,
 
-        @NotNull @Future
-        LocalDateTime startTime,
+        @NotNull @Future LocalDateTime startTime,
 
-        @NotNull @Future
-        LocalDateTime endTime,
+        @NotNull @Future LocalDateTime endTime,
 
-        @Positive
-        Integer capacity // nullable — falls back to ClassType.defaultCapacity in service
+        @Positive Integer capacity // nullable — falls back to ClassType.defaultCapacity in service
 ) {}

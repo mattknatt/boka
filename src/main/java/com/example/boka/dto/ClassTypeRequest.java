@@ -7,15 +7,11 @@ import jakarta.validation.constraints.Size;
 
 public record ClassTypeRequest(
 
-        @NotBlank
-        String name,
+        @NotBlank String name,
 
-        @Size(max = 500)
-        String description,
+        @Size(max = 500) String description,
 
-        @NotNull @Positive
-        Integer defaultCapacity,
+        @NotNull @Positive Integer defaultCapacity,
 
-        @NotNull @Positive
-        Integer durationMinutes
+        @NotNull @Positive Integer durationMinutes
 ) {}
