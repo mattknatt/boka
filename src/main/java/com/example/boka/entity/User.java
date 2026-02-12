@@ -59,7 +59,4 @@ public class User {
     private List<GymClass> instructedClasses = new ArrayList<>();
 
 
-
-
-
 }
