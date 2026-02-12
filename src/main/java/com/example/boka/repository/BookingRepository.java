@@ -2,18 +2,24 @@ package com.example.boka.repository;
 
 import com.example.boka.entity.Booking;
 import com.example.boka.entity.BookingStatus;
-import com.example.boka.entity.GymClass;
-import com.example.boka.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Set;
+import java.util.List;
+import java.util.Optional;
 
-public interface BookingRepository {
-    void save(Booking booking);
-    boolean delete(Booking booking);
-    Booking findById(Long id);
-    Set<Booking> findByUser(User user);
-    Set<Booking> findByClass(GymClass gymClass);
-    Set<Booking> findByUserAndClass(User user, GymClass gymClass);
-    Set<Booking> findAll();
-    Set<Booking> findByStatus(BookingStatus status);
+public interface BookingRepository extends JpaRepository<Booking, Long> {
+
+    List<Booking> findByUserId(Long userId);
+
+    List<Booking> findByGymClassId(Long gymClassId);
+
+    Optional<Booking> findByUserIdAndGymClassId(Long userId, Long gymClassId);
+
+    boolean existsByUserIdAndGymClassId(Long userId, Long gymClassId);
+
+    List<Booking> findByStatus(BookingStatus status);
+
+    List<Booking> findByUserIdAndStatus(Long userId, BookingStatus status);
+
+    long countByGymClassIdAndStatus(Long gymClassId, BookingStatus status);
 }

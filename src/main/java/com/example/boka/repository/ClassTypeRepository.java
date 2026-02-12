@@ -1,15 +1,16 @@
 package com.example.boka.repository;
 
 import com.example.boka.entity.ClassType;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Set;
+import java.util.List;
+import java.util.Optional;
 
-public interface ClassTypeRepository {
-    void save(ClassType classType);
-    boolean delete(ClassType classType);
-    ClassType findById(Long id);
-    ClassType findByName(String name);
-    Set<ClassType> findAll();
-    Set<ClassType> findByDuration(int duration);
-    Set<ClassType> findByCapacity(int capacity);
+public interface ClassTypeRepository extends JpaRepository<ClassType, Long> {
+
+    Optional<ClassType> findByName(String name);
+
+    boolean existsByName(String name);
+
+    List<ClassType> findByIsActiveTrue();
 }

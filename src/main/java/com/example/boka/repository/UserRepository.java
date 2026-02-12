@@ -2,18 +2,18 @@ package com.example.boka.repository;
 
 import com.example.boka.entity.User;
 import com.example.boka.entity.UserRole;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Set;
+import java.util.List;
+import java.util.Optional;
 
-public interface UserRepository {
-    User save(User user);
-    boolean delete(User user);
-    User findById(Long id);
-    User findByRole(UserRole role);
-    User findByEmail(String email);
-    User findByFirstName(String firstName);
-    User findByLastName(String lastName);
-    User findByPhoneNumber(String phoneNumber);
-    Set<User> findAll();
-    Set<User> findActiveUsers();
+public interface UserRepository extends JpaRepository<User, Long> {
+
+    Optional<User> findByEmail(String email);
+
+    boolean existsByEmail(String email);
+
+    List<User> findByRole(UserRole role);
+
+    List<User> findByIsActiveTrue();
 }
