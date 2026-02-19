@@ -20,4 +20,8 @@ public interface GymClassRepository extends JpaRepository<GymClass, Long> {
     List<GymClass> findByStartTimeBetween(LocalDateTime from, LocalDateTime to);
 
     List<GymClass> findByStatusAndStartTimeAfter(ClassStatus status, LocalDateTime time);
+
+    List<GymClass> findByClassTypeIdInAndStatusAndStartTimeAfter(
+            List<Long> classTypeIds, ClassStatus status, LocalDateTime time
+    );
 }

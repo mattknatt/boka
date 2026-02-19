@@ -2,6 +2,9 @@ package com.example.boka.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Array;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +26,12 @@ public class ClassType {
 
     @Column(length = 500)
     private String description;
+
+    // Vector embedding of the description (1536 dims for OpenAI text-embedding-3-small)
+    @Column(name = "description_embedding")
+    @JdbcTypeCode(SqlTypes.VECTOR)
+    @Array(length = 1536)
+    private float[] descriptionEmbedding;
 
     @Column(nullable = false)
     private Integer defaultCapacity;
