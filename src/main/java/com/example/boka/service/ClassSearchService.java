@@ -3,7 +3,6 @@ package com.example.boka.service;
 import com.example.boka.dto.GymClassMapper;
 import com.example.boka.dto.GymClassResponse;
 import com.example.boka.entity.ClassType;
-import com.example.boka.entity.GymClass;
 import com.example.boka.entity.ClassStatus;
 import com.example.boka.repository.ClassTypeRepository;
 import com.example.boka.repository.GymClassRepository;
@@ -12,7 +11,6 @@ import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 
 @Service
