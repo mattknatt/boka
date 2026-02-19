@@ -30,7 +30,7 @@ public class ClassType {
     // Vector embedding of the description (1536 dims for OpenAI text-embedding-3-small)
     @Column(name = "description_embedding")
     @JdbcTypeCode(SqlTypes.VECTOR)
-    @Array(length = 1536)
+    @Array(length = 768)
     private float[] descriptionEmbedding;
 
     @Column(nullable = false)
