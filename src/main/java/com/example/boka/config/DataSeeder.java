@@ -113,7 +113,7 @@ public class DataSeeder implements CommandLineRunner {
             }
         }
 
-        // ── Gym Classes (next 7 days) ───────────────────────────
+        // ── Gym Classes (next 5 days) ───────────────────────────
         LocalDateTime tomorrow = LocalDateTime.now().plusDays(1).withHour(8).withMinute(0).withSecond(0).withNano(0);
 
         // Day 1

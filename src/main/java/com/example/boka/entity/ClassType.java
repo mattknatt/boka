@@ -27,7 +27,7 @@ public class ClassType {
     @Column(length = 500)
     private String description;
 
-    // Vector embedding of the description (1536 dims for OpenAI text-embedding-3-small)
+    // Vector embedding of the description (768 dims for ollama nomic-embed-text)
     @Column(name = "description_embedding")
     @JdbcTypeCode(SqlTypes.VECTOR)
     @Array(length = 768)
