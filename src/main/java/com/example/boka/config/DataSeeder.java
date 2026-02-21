@@ -152,6 +152,9 @@ public class DataSeeder implements CommandLineRunner {
         gymClassRepository.saveAll(gymClasses);
 
         // ── Bookings ─────────────────────────────────────────────
+        // member1 likes: Yoga, Spinning, CrossFit
+        // member2 likes: Yoga, Strength
+        // member3 likes: HIIT, Pilates
         bookingRepository.saveAll(List.of(
                 createBooking(member1, yogaMon, BookingStatus.CONFIRMED),
                 createBooking(member2, yogaMon, BookingStatus.CONFIRMED),
@@ -161,11 +164,11 @@ public class DataSeeder implements CommandLineRunner {
                 createBooking(member1, spinMon, BookingStatus.CONFIRMED),
                 createBooking(member2, strengthMon, BookingStatus.CONFIRMED),
                 createBooking(member3, pilatesTue, BookingStatus.CONFIRMED),
-                createBooking(member4, boxingTue, BookingStatus.CANCELLED),
+                createBooking(member4, boxingTue, BookingStatus.CONFIRMED),
                 createBooking(member5, zumbaTue, BookingStatus.CONFIRMED),
                 createBooking(member1, crossfitWed, BookingStatus.CONFIRMED),
                 createBooking(member2, yogaWed, BookingStatus.CONFIRMED),
-                createBooking(member3, boxingFri, BookingStatus.WAITLISTED)
+                createBooking(member3, boxingFri, BookingStatus.CONFIRMED)
         ));
 
         log.info("Database seeding complete! Created {} users, {} class types, {} gym classes, {} bookings.",
