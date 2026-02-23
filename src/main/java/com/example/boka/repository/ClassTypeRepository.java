@@ -28,4 +28,20 @@ public interface ClassTypeRepository extends JpaRepository<ClassType, Long> {
             @Param("embedding") String embedding,
             @Param("limit") int limit
     );
+
+    @Query(value = """
+            SELECT ct.* FROM class_types ct
+            JOIN (
+                SELECT description_embedding
+                FROM class_types
+                WHERE id = :classTypeId
+                AND description_embedding IS NOT NULL
+            ) target ON true
+            WHERE ct.id != :classTypeId
+              AND ct.is_active = true
+              AND ct.description_embedding IS NOT NULL
+            ORDER BY ct.description_embedding <=> target.description_embedding
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<ClassType> findSimilarTo(@Param("classTypeId") Long classTypeId, @Param("limit") int limit);
 }
