@@ -32,7 +32,10 @@ public interface ClassTypeRepository extends JpaRepository<ClassType, Long> {
     @Query(value = """
             SELECT ct.* FROM class_types ct
             JOIN (
-                SELECT description_embedding FROM class_types WHERE id = :classTypeId
+                SELECT description_embedding
+                FROM class_types
+                WHERE id = :classTypeId
+                AND description_embedding IS NOT NULL
             ) target ON true
             WHERE ct.id != :classTypeId
               AND ct.is_active = true

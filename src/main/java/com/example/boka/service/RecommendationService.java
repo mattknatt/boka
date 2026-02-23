@@ -10,6 +10,7 @@ import com.example.boka.repository.ClassTypeRepository;
 import com.example.boka.repository.GymClassRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,6 +27,7 @@ public class RecommendationService {
     /**
      * Recommends classes based on the user's booking history and semantic similarity.
      */
+    @Transactional(readOnly = true)
     public List<GymClassResponse> getRecommendationsForUser(Long userId, int limit) {
         // 1. Get recent bookings for the user
         List<Booking> recentBookings = bookingRepository.findByUserId(userId);
