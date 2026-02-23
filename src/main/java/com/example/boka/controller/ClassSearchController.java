@@ -3,10 +3,12 @@ package com.example.boka.controller;
 import com.example.boka.dto.GymClassResponse;
 import com.example.boka.service.ClassSearchService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/classes")
@@ -24,6 +26,8 @@ public class ClassSearchController {
             @RequestParam(defaultValue = "10") int limit
     ) {
         List<GymClassResponse> results = classSearchService.searchClasses(query, limit);
-        return ResponseEntity.ok(results);
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noCache().mustRevalidate())
+                .body(results);
     }
 }
