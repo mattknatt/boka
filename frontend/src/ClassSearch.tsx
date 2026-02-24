@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 
 interface GymClass {
     id: number;
@@ -18,26 +18,53 @@ const ClassSearch: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [hasSearched, setHasSearched] = useState(false);
+    const searchAbortControllerRef = useRef<AbortController | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (searchAbortControllerRef.current) {
+                searchAbortControllerRef.current.abort();
+            }
+        };
+    }, []);
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!query.trim()) return;
+
+        // Abort any existing controller before creating a new one
+        if (searchAbortControllerRef.current) {
+            searchAbortControllerRef.current.abort();
+        }
+        const controller = new AbortController();
+        searchAbortControllerRef.current = controller;
+
+        if (!query.trim()) {
+            setResults([]);
+            setError(null);
+            setHasSearched(false);
+            return;
+        }
 
         setLoading(true);
         setError(null);
         setResults([]);
 
         try {
-            const response = await fetch(`/api/classes/search?query=${encodeURIComponent(query)}`);
+            const response = await fetch(`/api/classes/search?query=${encodeURIComponent(query)}`, {
+                signal: controller.signal
+            });
             if (!response.ok) {
                 throw new Error('Failed to fetch search results');
             }
             const data = await response.json() as GymClass[];
             setResults(data);
             setHasSearched(true);
-        } catch (err) {
+            setLoading(false);
+        } catch (err: any) {
+            if (err.name === 'AbortError') {
+                return;
+            }
             setError(err instanceof Error ? err.message : 'An unknown error occurred');
-        } finally {
             setLoading(false);
         }
     };
@@ -80,7 +107,7 @@ const ClassSearch: React.FC = () => {
                                 <p style={{
                                     fontWeight: 'bold',
                                     color: item.status === 'CANCELLED' ? '#d32f2f' :
-                                           item.status === 'FULL' ? '#f57c00' : '#2e7d32'
+                                        item.status === 'FULL' ? '#f57c00' : '#2e7d32'
                                 }}>
                                     Status: {item.status}
                                 </p>
