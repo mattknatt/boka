@@ -25,13 +25,14 @@ const ClassSearch: React.FC = () => {
 
         setLoading(true);
         setError(null);
+        setResults([]);
 
         try {
             const response = await fetch(`/api/classes/search?query=${encodeURIComponent(query)}`);
             if (!response.ok) {
                 throw new Error('Failed to fetch search results');
             }
-            const data = await response.json();
+            const data = await response.json() as GymClass[];
             setResults(data);
             setHasSearched(true);
         } catch (err) {
@@ -45,7 +46,9 @@ const ClassSearch: React.FC = () => {
         <div className="class-search">
             <h2>Search for Gym Classes</h2>
             <form onSubmit={handleSearch}>
+                <label htmlFor="class-search-input">Search gym classes</label>
                 <input
+                    id="class-search-input"
                     type="text"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
@@ -74,6 +77,13 @@ const ClassSearch: React.FC = () => {
                                 <p>Instructor: {item.instructorFirstName} {item.instructorLastName}</p>
                                 <p>Time: {new Date(item.startTime).toLocaleString()}</p>
                                 <p>Spots: {item.availableSpots} / {item.capacity}</p>
+                                <p style={{
+                                    fontWeight: 'bold',
+                                    color: item.status === 'CANCELLED' ? '#d32f2f' :
+                                           item.status === 'FULL' ? '#f57c00' : '#2e7d32'
+                                }}>
+                                    Status: {item.status}
+                                </p>
                             </li>
                         ))}
                     </ul>
