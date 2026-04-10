@@ -100,8 +100,8 @@ const ClassSearch: React.FC<ClassSearchProps> = ({ isLoggedIn }) => {
                 // Refresh search to update spots
                 performSearch(query);
             } else {
-                const text = await response.text();
-                setError(text || 'Booking failed. You might have already booked this class.');
+                const data = await response.json();
+                setError(data.message || 'Booking failed. You might have already booked this class.');
             }
         } catch {
             setError('An error occurred while booking. Please try again.');

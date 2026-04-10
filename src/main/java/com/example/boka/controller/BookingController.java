@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/bookings")
 @RequiredArgsConstructor
@@ -39,5 +42,10 @@ public class BookingController {
 
         BookingResponse response = bookingService.createBooking(request.gymClassId(), email);
         return ResponseEntity.ok(response);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalState(IllegalStateException ex) {
+        return ResponseEntity.badRequest().body(Map.of("message", ex.getMessage()));
     }
 }
