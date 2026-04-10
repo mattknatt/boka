@@ -12,10 +12,15 @@ interface GymClass {
     status: string;
 }
 
-const ClassSearch: React.FC = () => {
+interface ClassSearchProps {
+    isLoggedIn: boolean;
+}
+
+const ClassSearch: React.FC<ClassSearchProps> = ({ isLoggedIn }) => {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<GymClass[]>([]);
     const [loading, setLoading] = useState(false);
+    const [bookingLoading, setBookingLoading] = useState<Record<number, boolean>>({});
     const [error, setError] = useState<string | null>(null);
     const [hasSearched, setHasSearched] = useState(false);
     const searchAbortControllerRef = useRef<AbortController | null>(null);
@@ -77,6 +82,34 @@ const ClassSearch: React.FC = () => {
         }
     };
 
+    const handleBookClass = async (classId: number) => {
+        if (!isLoggedIn) return;
+
+        setBookingLoading(prev => ({ ...prev, [classId]: true }));
+        setError(null);
+
+        try {
+            const response = await fetch('/api/bookings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ gymClassId: classId })
+            });
+
+            if (response.ok) {
+                alert('Booking successful!');
+                // Refresh search to update spots
+                performSearch(query);
+            } else {
+                const data = await response.json();
+                setError(data.message || 'Booking failed. You might have already booked this class.');
+            }
+        } catch {
+            setError('An error occurred while booking. Please try again.');
+        } finally {
+            setBookingLoading(prev => ({ ...prev, [classId]: false }));
+        }
+    };
+
     return (
         <div className="class-search">
             <h2>Find Gym Classes</h2>
@@ -120,41 +153,71 @@ const ClassSearch: React.FC = () => {
                         <>
                             <h3 style={{ marginBottom: '20px' }}>Search Results</h3>
                             <ul style={{listStyle: 'none', padding: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px'}}>
-                                {results.map((item) => (
-                                    <li key={item.id} style={{
-                                        border: '1px solid #eee',
-                                        padding: '20px',
-                                        borderRadius: '8px',
-                                        textAlign: 'left',
-                                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                                        backgroundColor: '#fff',
-                                        color: '#333'
-                                    }}>
-                                        <h3 style={{marginTop: 0, color: '#ff1493'}}>{item.classTypeName}</h3>
-                                        <p><strong>Instructor:</strong> {item.instructorFirstName} {item.instructorLastName}</p>
-                                        <p><strong>Time:</strong> {new Date(item.startTime).toLocaleString('sv-SE', {
-                                            weekday: 'long',
-                                            day: 'numeric',
-                                            month: 'short',
-                                            hour: '2-digit',
-                                            minute: '2-digit'
-                                        })}</p>
-                                        <p><strong>Spots:</strong> {item.availableSpots} / {item.capacity}</p>
-                                        <div style={{
-                                            display: 'inline-block',
-                                            padding: '4px 12px',
-                                            borderRadius: '12px',
-                                            fontSize: '0.85rem',
-                                            fontWeight: 'bold',
-                                            backgroundColor: item.status === 'CANCELLED' ? '#ffebee' :
-                                                item.status === 'FULL' ? '#fff3e0' : '#e8f5e9',
-                                            color: item.status === 'CANCELLED' ? '#d32f2f' :
-                                                item.status === 'FULL' ? '#ef6c00' : '#2e7d32'
+                                {results.map((item) => {
+                                    const isFull = item.availableSpots <= 0 || item.status === 'FULL';
+                                    const isLoading = bookingLoading[item.id];
+                                    
+                                    return (
+                                        <li key={item.id} style={{
+                                            border: '1px solid #eee',
+                                            padding: '20px',
+                                            borderRadius: '8px',
+                                            textAlign: 'left',
+                                            boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                                            backgroundColor: '#fff',
+                                            color: '#333',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            justifyContent: 'space-between'
                                         }}>
-                                            {item.status}
-                                        </div>
-                                    </li>
-                                ))}
+                                            <div>
+                                                <h3 style={{marginTop: 0, color: '#ff1493'}}>{item.classTypeName}</h3>
+                                                <p><strong>Instructor:</strong> {item.instructorFirstName} {item.instructorLastName}</p>
+                                                <p><strong>Time:</strong> {new Date(item.startTime).toLocaleString('sv-SE', {
+                                                    weekday: 'long',
+                                                    day: 'numeric',
+                                                    month: 'short',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                })}</p>
+                                                <p><strong>Spots:</strong> {item.availableSpots} / {item.capacity}</p>
+                                                <div style={{
+                                                    display: 'inline-block',
+                                                    padding: '4px 12px',
+                                                    borderRadius: '12px',
+                                                    fontSize: '0.85rem',
+                                                    fontWeight: 'bold',
+                                                    backgroundColor: item.status === 'CANCELLED' ? '#ffebee' :
+                                                        item.status === 'FULL' ? '#fff3e0' : '#e8f5e9',
+                                                    color: item.status === 'CANCELLED' ? '#d32f2f' :
+                                                        item.status === 'FULL' ? '#ef6c00' : '#2e7d32',
+                                                    marginBottom: '15px'
+                                                }}>
+                                                    {item.status}
+                                                </div>
+                                            </div>
+                                            
+                                            <button
+                                                onClick={() => handleBookClass(item.id)}
+                                                disabled={!isLoggedIn || isFull || isLoading}
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '10px',
+                                                    borderRadius: '6px',
+                                                    border: 'none',
+                                                    fontWeight: '600',
+                                                    cursor: (!isLoggedIn || isFull || isLoading) ? 'not-allowed' : 'pointer',
+                                                    backgroundColor: !isLoggedIn ? '#f0f0f0' : (isFull ? '#eee' : '#ff1493'),
+                                                    color: !isLoggedIn ? '#999' : (isFull ? '#999' : 'white'),
+                                                    transition: 'opacity 0.2s',
+                                                    opacity: isLoading ? 0.7 : 1
+                                                }}
+                                            >
+                                                {!isLoggedIn ? 'Log in to book' : (isFull ? 'Class Full' : (isLoading ? 'Booking...' : 'Book Spot'))}
+                                            </button>
+                                        </li>
+                                    );
+                                })}
                             </ul>
                         </>
                     ) : (
