@@ -1,0 +1,15 @@
+{
+  "name": "boka",
+  "version": "1.0.0",
+  "description": "Boka - gym class booking project",
+  "scripts": {
+    "start": "concurrently --kill-others \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "./mvnw spring-boot:run -Dspring-boot.run.profiles=dev",
+    "start:frontend": "npm run dev --prefix frontend",
+    "stop": "docker-compose down",
+    "install:all": "npm install && npm install --prefix frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
