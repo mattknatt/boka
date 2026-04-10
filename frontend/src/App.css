@@ -22,6 +22,22 @@
   letter-spacing: -1px;
 }
 
+.user-nav {
+  display: flex;
+  align-items: center;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-name {
+  font-weight: 500;
+  color: #333;
+}
+
 .login-button {
   background-color: #ff1493;
   color: white;
@@ -33,9 +49,21 @@
   transition: opacity 0.2s;
 }
 
+.login-button.logout {
+  background-color: transparent;
+  color: #ff1493;
+  border: 2px solid #ff1493;
+}
+
 .login-button:hover {
   opacity: 0.8;
   border-color: transparent;
+}
+
+.login-button.logout:hover {
+  background-color: #ff1493;
+  color: white;
+  opacity: 1;
 }
 
 .hero {
