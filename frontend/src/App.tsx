@@ -1,30 +1,34 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import './App.css'
 import ClassSearch from './ClassSearch'
+import LoginDropdown from './LoginDropdown'
+import RegistrationModal from './RegistrationModal'
 
 interface UserInfo {
   name: string;
   email: string;
-  picture: string;
+  picture?: string;
+  type: string;
+  role?: string;
 }
 
 function App() {
   const [user, setUser] = useState<UserInfo | null>(null);
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
 
-  useEffect(() => {
+  const fetchUser = useCallback(() => {
     fetch('/api/auth/me')
       .then(res => {
-        if (res.ok) return res.json();
+        if (res.status === 200) return res.json();
         return null;
       })
       .then(data => setUser(data))
       .catch(() => setUser(null));
   }, []);
 
-  const handleLogin = () => {
-    // Redirect to backend OAuth2 initiation endpoint
-    window.location.href = '/oauth2/authorization/google';
-  };
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
 
   const handleLogout = () => {
     window.location.href = '/logout';
@@ -42,7 +46,12 @@ function App() {
                 <button className="login-button logout" onClick={handleLogout}>Logout</button>
               </div>
             ) : (
-              <button className="login-button" onClick={handleLogin}>Login with Google</button>
+              <>
+                <button className="create-account-button" onClick={() => setIsRegisterModalOpen(true)}>
+                  Create Account
+                </button>
+                <LoginDropdown onLoginSuccess={fetchUser} />
+              </>
             )}
           </div>
         </header>
@@ -59,6 +68,12 @@ function App() {
           <ClassSearch />
         </section>
       </div>
+
+      <RegistrationModal 
+        isOpen={isRegisterModalOpen} 
+        onClose={() => setIsRegisterModalOpen(false)}
+        onSuccess={fetchUser}
+      />
     </div>
   )
 }

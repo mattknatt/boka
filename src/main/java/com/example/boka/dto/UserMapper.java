@@ -24,10 +24,9 @@ public final class UserMapper {
 
     public static User toEntity(UserRegistrationRequest request) {
         User user = new User();
-        user.setEmail(request.email());
-        user.setFirstName(request.firstName());
-        user.setLastName(request.lastName());
-        user.setPhoneNumber(request.phoneNumber());
+        user.setEmail(request.getEmail());
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
         return user;
     }
 }
