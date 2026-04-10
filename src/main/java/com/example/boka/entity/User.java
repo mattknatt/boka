@@ -24,7 +24,7 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String passwordHash;
 
     @Column(nullable = false)
@@ -34,6 +34,12 @@ public class User {
     private String lastName;
 
     private String phoneNumber;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AuthProvider authProvider = AuthProvider.LOCAL;
+
+    private String providerId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
