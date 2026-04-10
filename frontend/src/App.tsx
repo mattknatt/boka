@@ -65,7 +65,7 @@ function App() {
         </main>
 
         <section className="card">
-          <ClassSearch />
+          <ClassSearch isLoggedIn={user !== null} />
         </section>
       </div>
 
