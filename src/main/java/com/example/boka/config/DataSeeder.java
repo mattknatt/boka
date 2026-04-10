@@ -23,7 +23,6 @@ public class DataSeeder implements CommandLineRunner {
     private final ClassTypeRepository classTypeRepository;
     private final GymClassRepository gymClassRepository;
     private final BookingRepository bookingRepository;
-    private final ClassSearchService classSearchService;
 
     @Override
     @Transactional
@@ -100,18 +99,6 @@ public class DataSeeder implements CommandLineRunner {
 
         List<ClassType> classTypes = List.of(yoga, hiit, strength, spinning, pilates, boxing, zumba, crossfit);
         classTypeRepository.saveAll(classTypes);
-
-        // Generate vector embeddings for each class type description
-        log.info("Generating vector embeddings for class types...");
-        for (ClassType ct : classTypes) {
-            try {
-                classSearchService.updateEmbedding(ct);
-                classTypeRepository.save(ct);
-                log.info("  ✓ Embedded: {}", ct.getName());
-            } catch (Exception e) {
-                log.warn("  ✗ Failed to embed {}: {}", ct.getName(), e.getMessage());
-            }
-        }
 
         // ── Gym Classes (next 5 days) ───────────────────────────
         LocalDateTime tomorrow = LocalDateTime.now().plusDays(1).withHour(8).withMinute(0).withSecond(0).withNano(0);
