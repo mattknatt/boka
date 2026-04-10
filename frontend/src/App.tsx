@@ -32,31 +32,33 @@ function App() {
 
   return (
     <div className="app-container">
-      <header className="header">
-        <div className="brand-logo">boka.</div>
-        <div className="user-nav">
-          {user ? (
-            <div className="user-info">
-              <span className="user-name">Hey, {user.name}</span>
-              <button className="login-button logout" onClick={handleLogout}>Logout</button>
-            </div>
-          ) : (
-            <button className="login-button" onClick={handleLogin}>Login with Google</button>
-          )}
-        </div>
-      </header>
+      <div className="content-wrapper">
+        <header className="header">
+          <div className="brand-logo">boka.</div>
+          <div className="user-nav">
+            {user ? (
+              <div className="user-info">
+                <span className="user-name">Hey, {user.name}</span>
+                <button className="login-button logout" onClick={handleLogout}>Logout</button>
+              </div>
+            ) : (
+              <button className="login-button" onClick={handleLogin}>Login with Google</button>
+            )}
+          </div>
+        </header>
 
-      <main className="hero">
-        <h1>Find your next workout.</h1>
-        <p>
-          Boka makes it easy to discover and book gym classes at your favorite local studios. 
-          Start your fitness journey today.
-        </p>
-      </main>
+        <main className="hero">
+          <h1>Find your next workout.</h1>
+          <p>
+            Boka makes it easy to discover and book gym classes at your favorite local studios. 
+            Start your fitness journey today.
+          </p>
+        </main>
 
-      <section className="card">
-        <ClassSearch />
-      </section>
+        <section className="card">
+          <ClassSearch />
+        </section>
+      </div>
     </div>
   )
 }
