@@ -11,17 +11,11 @@ import lombok.Setter;
 @Setter
 @Data
 public class UserRegistrationRequest {
-    @NotBlank
-    private String firstName;
+    @NotBlank private String firstName;
 
-    @NotBlank
-    private String lastName;
+    @NotBlank private String lastName;
 
-    @NotBlank
-    @Email
-    private String email;
+    @NotBlank @Email private String email;
 
-    @NotBlank
-    @Size(min = 6)
-    private String password;
+    @NotBlank @Size(min = 6) private String password;
 }
