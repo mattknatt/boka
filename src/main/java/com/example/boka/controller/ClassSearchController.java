@@ -17,7 +17,7 @@ public class ClassSearchController {
     private final ClassSearchService classSearchService;
 
     /**
-     * Smart search: "I want to build muscle" → returns strength/weightlifting classes
+     * Simple search: find classes by name
      */
     @GetMapping("/search")
     public ResponseEntity<List<GymClassResponse>> searchClasses(

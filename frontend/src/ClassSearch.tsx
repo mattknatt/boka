@@ -79,7 +79,7 @@ const ClassSearch: React.FC = () => {
                     type="text"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="e.g., 'build muscle' or 'yoga'"
+                    placeholder="e.g., 'yoga' or 'spinning'"
                     style={{padding: '8px', width: '300px'}}
                 />
                 <button type="submit" disabled={loading} style={{marginLeft: '10px'}}>
