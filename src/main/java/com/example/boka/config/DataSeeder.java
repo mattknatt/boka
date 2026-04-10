@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ public class DataSeeder implements CommandLineRunner {
     private final ClassTypeRepository classTypeRepository;
     private final GymClassRepository gymClassRepository;
     private final BookingRepository bookingRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -167,7 +169,7 @@ public class DataSeeder implements CommandLineRunner {
     private User createUser(String email, String firstName, String lastName, UserRole role, String phone) {
         User user = new User();
         user.setEmail(email);
-        user.setPasswordHash("$2a$10$dummyHashedPasswordForSeeding"); // BCrypt placeholder
+        user.setPasswordHash(passwordEncoder.encode("password123")); // Real hashed password
         user.setFirstName(firstName);
         user.setLastName(lastName);
         user.setPhoneNumber(phone);
