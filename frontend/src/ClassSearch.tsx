@@ -1,4 +1,4 @@
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useState, useRef, useEffect, useCallback} from 'react';
 
 interface GymClass {
     id: number;
@@ -20,17 +20,7 @@ const ClassSearch: React.FC = () => {
     const [hasSearched, setHasSearched] = useState(false);
     const searchAbortControllerRef = useRef<AbortController | null>(null);
 
-    useEffect(() => {
-        return () => {
-            if (searchAbortControllerRef.current) {
-                searchAbortControllerRef.current.abort();
-            }
-        };
-    }, []);
-
-    const handleSearch = async (e: React.FormEvent) => {
-        e.preventDefault();
-
+    const performSearch = useCallback(async (searchQuery: string) => {
         // Abort any existing controller before creating a new one
         if (searchAbortControllerRef.current) {
             searchAbortControllerRef.current.abort();
@@ -38,19 +28,11 @@ const ClassSearch: React.FC = () => {
         const controller = new AbortController();
         searchAbortControllerRef.current = controller;
 
-        if (!query.trim()) {
-            setResults([]);
-            setError(null);
-            setHasSearched(false);
-            return;
-        }
-
         setLoading(true);
         setError(null);
-        setResults([]);
 
         try {
-            const response = await fetch(`/api/classes/search?query=${encodeURIComponent(query)}`, {
+            const response = await fetch(`/api/classes/search?query=${encodeURIComponent(searchQuery)}`, {
                 signal: controller.signal
             });
             if (!response.ok) {
@@ -60,62 +42,116 @@ const ClassSearch: React.FC = () => {
             setResults(data);
             setHasSearched(true);
             setLoading(false);
-        } catch (err: any) {
-            if (err.name === 'AbortError') {
+        } catch (err: unknown) {
+            if (err instanceof Error && err.name === 'AbortError') {
                 return;
             }
             setError(err instanceof Error ? err.message : 'An unknown error occurred');
             setLoading(false);
         }
+    }, []);
+
+    // Load all classes on initial mount
+    useEffect(() => {
+        performSearch('');
+        
+        return () => {
+            if (searchAbortControllerRef.current) {
+                searchAbortControllerRef.current.abort();
+            }
+        };
+    }, [performSearch]);
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        performSearch(query);
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = e.target.value;
+        setQuery(newValue);
+        // Automatically show all classes if input is cleared
+        if (newValue === '') {
+            performSearch('');
+        }
     };
 
     return (
         <div className="class-search">
-            <h2>Search for Gym Classes</h2>
+            <h2>Available Gym Classes</h2>
             <form onSubmit={handleSearch}>
-                <label htmlFor="class-search-input">Search gym classes</label>
+                <label htmlFor="class-search-input" style={{ display: 'block', marginBottom: '8px' }}>
+                    Search by class name
+                </label>
                 <input
                     id="class-search-input"
                     type="text"
                     value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="e.g., 'yoga' or 'spinning'"
-                    style={{padding: '8px', width: '300px'}}
+                    onChange={handleInputChange}
+                    placeholder="e.g., 'Yoga' or 'Spinning'"
+                    style={{padding: '10px', width: '300px', borderRadius: '4px', border: '1px solid #ccc'}}
                 />
-                <button type="submit" disabled={loading} style={{marginLeft: '10px'}}>
+                <button 
+                    type="submit" 
+                    disabled={loading} 
+                    style={{
+                        marginLeft: '10px', 
+                        padding: '10px 20px', 
+                        cursor: 'pointer',
+                        backgroundColor: '#ff1493',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        fontWeight: '600'
+                    }}
+                >
                     {loading ? 'Searching...' : 'Search'}
                 </button>
             </form>
 
-            {error && <p style={{color: 'red'}}>{error}</p>}
+            {error && <p style={{color: 'red', marginTop: '10px'}}>{error}</p>}
 
-            <div className="results" style={{marginTop: '20px'}}>
+            <div className="results" style={{marginTop: '30px'}}>
                 {results.length > 0 ? (
-                    <ul style={{listStyle: 'none', padding: 0}}>
+                    <ul style={{listStyle: 'none', padding: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px'}}>
                         {results.map((item) => (
                             <li key={item.id} style={{
-                                border: '1px solid #ccc',
-                                marginBottom: '10px',
-                                padding: '10px',
-                                borderRadius: '4px',
-                                textAlign: 'left'
+                                border: '1px solid #eee',
+                                padding: '20px',
+                                borderRadius: '8px',
+                                textAlign: 'left',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                                backgroundColor: '#fff',
+                                color: '#333'
                             }}>
-                                <h3>{item.classTypeName}</h3>
-                                <p>Instructor: {item.instructorFirstName} {item.instructorLastName}</p>
-                                <p>Time: {new Date(item.startTime).toLocaleString()}</p>
-                                <p>Spots: {item.availableSpots} / {item.capacity}</p>
-                                <p style={{
+                                <h3 style={{marginTop: 0, color: '#ff1493'}}>{item.classTypeName}</h3>
+                                <p><strong>Instructor:</strong> {item.instructorFirstName} {item.instructorLastName}</p>
+                                <p><strong>Time:</strong> {new Date(item.startTime).toLocaleString('sv-SE', {
+                                    weekday: 'long',
+                                    day: 'numeric',
+                                    month: 'short',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })}</p>
+                                <p><strong>Spots:</strong> {item.availableSpots} / {item.capacity}</p>
+                                <div style={{
+                                    display: 'inline-block',
+                                    padding: '4px 12px',
+                                    borderRadius: '12px',
+                                    fontSize: '0.85rem',
                                     fontWeight: 'bold',
+                                    backgroundColor: item.status === 'CANCELLED' ? '#ffebee' :
+                                        item.status === 'FULL' ? '#fff3e0' : '#e8f5e9',
                                     color: item.status === 'CANCELLED' ? '#d32f2f' :
-                                        item.status === 'FULL' ? '#f57c00' : '#2e7d32'
+                                        item.status === 'FULL' ? '#ef6c00' : '#2e7d32'
                                 }}>
-                                    Status: {item.status}
-                                </p>
+                                    {item.status}
+                                </div>
                             </li>
                         ))}
                     </ul>
                 ) : (
-                    !loading && hasSearched && <p>No results found. Try searching for something else!</p>
+                    !loading && hasSearched && <p>No classes found. Try a different search term!</p>
                 )}
             </div>
         </div>
