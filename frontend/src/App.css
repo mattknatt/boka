@@ -1,95 +1,114 @@
 #root {
   width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
+  margin: 0;
   text-align: center;
 }
-
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  width: 100%;
-  box-sizing: border-box;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.app-container {
+    min-height: 100vh;
+    width: 100%;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)),
+    url('./assets/background-gym.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.content-wrapper {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .brand-logo {
-  font-size: 2rem;
-  font-weight: 900;
-  color: #ff1493; /* Deep Pink */
-  text-decoration: none;
-  letter-spacing: -1px;
+    font-size: 2rem;
+    font-weight: 900;
+    color: #ff4f9a; /* Deep Pink */
+    text-decoration: none;
+    letter-spacing: -1px;
 }
 
 .user-nav {
-  display: flex;
-  align-items: center;
+    display: flex;
+    align-items: center;
 }
 
 .user-info {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
 .user-name {
-  font-weight: 500;
-  color: #333;
+    font-weight: 500;
+    color: #333;
 }
 
 .login-button {
-  background-color: #ff1493;
-  color: white;
-  border: none;
-  padding: 0.6rem 1.5rem;
-  border-radius: 25px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.2s;
+    background-color: #ff4f9a;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
 }
 
 .login-button.logout {
-  background-color: transparent;
-  color: #ff1493;
-  border: 2px solid #ff1493;
+    background-color: transparent;
+    color: #ff4f9a;
+    border: 2px solid #ff4f9a;
 }
 
 .login-button:hover {
-  opacity: 0.8;
-  border-color: transparent;
+    opacity: 0.8;
+    border-color: transparent;
 }
 
 .login-button.logout:hover {
-  background-color: #ff1493;
-  color: white;
-  opacity: 1;
+    background-color: #ff4f9a;
+    color: white;
+    opacity: 1;
 }
 
 .hero {
-  padding: 4rem 2rem;
-  max-width: 800px;
-  margin: 0 auto;
+    padding: 4rem 2rem;
+    max-width: 800px;
+    margin: 0 auto;
 }
 
 .hero h1 {
-  font-size: 3.5rem;
-  margin-bottom: 1.5rem;
+    font-size: 3.5rem;
+    margin-bottom: 1.5rem;
 }
 
 .hero p {
-  font-size: 1.25rem;
-  color: #888;
-  line-height: 1.6;
+    font-size: 1.25rem;
+    color: #888;
+    line-height: 1.6;
 }
 
 .card {
-  padding: 2em;
-  width: 100%;
+    padding: 2em;
+    width: 100%;
 }
 
 @media (max-width: 768px) {
-  .hero h1 {
-    font-size: 2.5rem;
-  }
+    .hero h1 {
+        font-size: 2.5rem;
+    }
 }
