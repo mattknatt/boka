@@ -2,7 +2,6 @@ package com.example.boka.config;
 
 import com.example.boka.entity.*;
 import com.example.boka.repository.*;
-import com.example.boka.service.ClassSearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
