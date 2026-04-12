@@ -4,6 +4,7 @@ import com.example.boka.dto.UserMapper;
 import com.example.boka.dto.UserResponse;
 import com.example.boka.dto.UserUpdateRequest;
 import com.example.boka.entity.User;
+import com.example.boka.exception.UserNotFoundException;
 import com.example.boka.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,7 +28,7 @@ public class UserService {
     @Transactional
     public UserResponse updateUser(String email, UserUpdateRequest request) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException(email));
 
         UserMapper.updateFromRequest(user, request);
 
@@ -41,7 +42,7 @@ public class UserService {
     @Transactional
     public void deleteUser(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException(email));
         userRepository.delete(user);
     }
 }

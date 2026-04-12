@@ -2,6 +2,7 @@ package com.example.boka.controller;
 
 import com.example.boka.dto.UserResponse;
 import com.example.boka.dto.UserUpdateRequest;
+import com.example.boka.exception.UserNotFoundException;
 import com.example.boka.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +55,7 @@ public class UserController {
 
         try {
             return ResponseEntity.ok(userService.updateUser(email, request));
-        } catch (RuntimeException e) {
+        } catch (UserNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
     }
@@ -69,7 +70,7 @@ public class UserController {
         try {
             userService.deleteUser(email);
             return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
+        } catch (UserNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
     }

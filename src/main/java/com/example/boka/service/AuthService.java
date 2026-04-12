@@ -8,6 +8,7 @@ import com.example.boka.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -47,7 +48,11 @@ public class AuthService {
         user.setRole(UserRole.MEMBER);
         user.setIsActive(true);
 
-        userRepository.save(user);
+        try {
+            userRepository.saveAndFlush(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalArgumentException("Email already in use");
+        }
 
         // Auto-login after registration
         loginUser(user, request, response);
