@@ -1,6 +1,5 @@
 package com.example.boka.security;
 
-import com.example.boka.entity.User;
 import com.example.boka.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;

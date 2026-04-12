@@ -34,7 +34,7 @@ public class BookingController {
     ) {
         if (bindingResult.hasErrors()) {
             Map<String, String> errors = new HashMap<>();
-            bindingResult.getFieldErrors().forEach(error -> 
+            bindingResult.getFieldErrors().forEach(error ->
                 errors.put(error.getField(), error.getDefaultMessage()));
             return ResponseEntity.badRequest().body(errors);
         }
