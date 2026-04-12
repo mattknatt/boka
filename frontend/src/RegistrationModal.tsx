@@ -102,12 +102,12 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '5px' }}>Password (min 6 chars)</label>
+            <label style={{ display: 'block', marginBottom: '5px' }}>Password (min 8 chars)</label>
             <input
               type="password"
               placeholder="Password"
               required
-              minLength={6}
+              minLength={8}
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               style={{ width: '100%', padding: '10px', border: errors.password ? '1px solid red' : '1px solid #ccc', borderRadius: '4px' }}

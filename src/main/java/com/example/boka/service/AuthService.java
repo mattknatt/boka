@@ -1,5 +1,6 @@
 package com.example.boka.service;
 
+import com.example.boka.dto.UserMapper;
 import com.example.boka.dto.UserRegistrationRequest;
 import com.example.boka.entity.AuthProvider;
 import com.example.boka.entity.User;
@@ -39,10 +40,7 @@ public class AuthService {
             throw new IllegalArgumentException("Email already in use");
         }
 
-        User user = new User();
-        user.setEmail(registrationRequest.getEmail());
-        user.setFirstName(registrationRequest.getFirstName());
-        user.setLastName(registrationRequest.getLastName());
+        User user = UserMapper.toEntity(registrationRequest);
         user.setPasswordHash(passwordEncoder.encode(registrationRequest.getPassword()));
         user.setAuthProvider(AuthProvider.LOCAL);
         user.setRole(UserRole.MEMBER);
