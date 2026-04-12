@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -27,6 +28,7 @@ public class UserService {
 
     @Transactional
     public UserResponse updateUser(String email, UserUpdateRequest request) {
+        Objects.requireNonNull(request, "Request must not be null");
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException(email));
 
