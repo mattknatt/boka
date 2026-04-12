@@ -16,6 +16,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -32,8 +33,29 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    private List<String> getAllowedOrigins() {
+        String allowedOriginEnv = System.getenv("ALLOWED_ORIGIN");
+        if (allowedOriginEnv == null || allowedOriginEnv.isBlank()) {
+            return List.of("http://localhost:5173");
+        }
+
+        List<String> origins = Arrays.stream(allowedOriginEnv.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
+                .collect(Collectors.toList());
+
+        return origins.isEmpty() ? List.of("http://localhost:5173") : origins;
+    }
+
+    private String getFrontendUrl() {
+        // For redirects, we take the first allowed origin
+        return getAllowedOrigins().get(0);
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        String frontendUrl = getFrontendUrl();
+
         http
             .cors(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable)
@@ -56,10 +78,10 @@ public class SecurityConfig {
                     .userService(customOAuth2UserService)
                     .userAuthoritiesMapper(customGrantedAuthoritiesMapper)
                 )
-                .defaultSuccessUrl("/", true)
+                .defaultSuccessUrl(frontendUrl, true)
             )
             .logout(logout -> logout
-                .logoutSuccessUrl("/")
+                .logoutSuccessUrl(frontendUrl)
                 .invalidateHttpSession(true)
                 .clearAuthentication(true)
                 .deleteCookies("JSESSIONID")
@@ -73,15 +95,11 @@ public class SecurityConfig {
 
         return http.build();
     }
+
+    @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Allow the local frontend in dev, and potentially others via environment variable
-        String allowedOrigin = System.getenv("ALLOWED_ORIGIN");
-        if (allowedOrigin != null) {
-            configuration.setAllowedOrigins(List.of(allowedOrigin));
-        } else {
-            configuration.setAllowedOrigins(List.of("http://localhost:5173"));
-        }
+        configuration.setAllowedOrigins(getAllowedOrigins());
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
