@@ -56,10 +56,10 @@ public class SecurityConfig {
                     .userService(customOAuth2UserService)
                     .userAuthoritiesMapper(customGrantedAuthoritiesMapper)
                 )
-                .defaultSuccessUrl("http://localhost:5173", true)
+                .defaultSuccessUrl("/", true)
             )
             .logout(logout -> logout
-                .logoutSuccessUrl("http://localhost:5173")
+                .logoutSuccessUrl("/")
                 .invalidateHttpSession(true)
                 .clearAuthentication(true)
                 .deleteCookies("JSESSIONID")
@@ -75,7 +75,13 @@ public class SecurityConfig {
     }
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        // Allow the local frontend in dev, and potentially others via environment variable
+        String allowedOrigin = System.getenv("ALLOWED_ORIGIN");
+        if (allowedOrigin != null) {
+            configuration.setAllowedOrigins(List.of(allowedOrigin));
+        } else {
+            configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        }
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
