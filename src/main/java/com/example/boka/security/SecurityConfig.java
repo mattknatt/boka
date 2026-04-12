@@ -25,6 +25,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final CustomGrantedAuthoritiesMapper customGrantedAuthoritiesMapper;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -53,6 +54,7 @@ public class SecurityConfig {
             .oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfo -> userInfo
                     .userService(customOAuth2UserService)
+                    .userAuthoritiesMapper(customGrantedAuthoritiesMapper)
                 )
                 .defaultSuccessUrl("http://localhost:5173", true)
             )

@@ -22,6 +22,12 @@ public final class UserMapper {
         );
     }
 
+    public static void updateFromRequest(User user, UserUpdateRequest request) {
+        if (request.firstName() != null) user.setFirstName(request.firstName());
+        if (request.lastName() != null) user.setLastName(request.lastName());
+        if (request.phoneNumber() != null) user.setPhoneNumber(request.phoneNumber());
+    }
+
     public static User toEntity(UserRegistrationRequest request) {
         User user = new User();
         user.setEmail(request.getEmail());
