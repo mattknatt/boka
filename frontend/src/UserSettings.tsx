@@ -169,11 +169,12 @@ const UserSettings: React.FC<UserSettingsProps> = ({ onLogout, onBack }) => {
                     <span style={getErrorStyle('phoneNumber')}>{errors.phoneNumber}</span>
                 </div>
                 <div>
-                    <label style={{ display: 'block', marginBottom: '5px' }}>New Password (leave blank to keep current)</label>
+                    <label style={{ display: 'block', marginBottom: '5px' }}>New Password (min 8 chars, leave blank to keep current)</label>
                     <input 
                         type="password" 
                         value={password} 
                         onChange={(e) => setPassword(e.target.value)} 
+                        minLength={8}
                         style={{ width: '100%', padding: '10px', border: errors.password ? '1px solid red' : '1px solid #ccc', borderRadius: '4px' }} 
                     />
                     <span style={getErrorStyle('password')}>{errors.password}</span>
