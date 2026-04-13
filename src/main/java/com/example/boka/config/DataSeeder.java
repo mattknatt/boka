@@ -53,7 +53,7 @@ public class DataSeeder implements CommandLineRunner {
         User instructor1 = createUser("anna@boka.se", "Anna", "Johansson", UserRole.INSTRUCTOR, "070-222-2222");
         User instructor2 = createUser("erik@boka.se", "Erik", "Lindberg", UserRole.INSTRUCTOR, "070-333-3333");
         User instructor3 = createUser("sara@boka.se", "Sara", "Nilsson", UserRole.INSTRUCTOR, "070-444-4444");
-        
+
         List<User> members = List.of(
             createUser("karl@example.com", "Karl", "Svensson", UserRole.MEMBER, "070-555-5555"),
             createUser("lisa@example.com", "Lisa", "Eriksson", UserRole.MEMBER, "070-666-6666"),
@@ -81,23 +81,23 @@ public class DataSeeder implements CommandLineRunner {
         // ── Gym Classes (Rolling 14-day schedule) ────────────────
         List<User> instructors = List.of(instructor1, instructor2, instructor3);
         List<GymClass> allGymClasses = new ArrayList<>();
-        
+
         LocalDateTime startBase = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
 
         for (int day = 0; day < 14; day++) {
             LocalDateTime dayDate = startBase.plusDays(day);
-            
+
             // Generate 5 random classes per day at random gyms
             for (int i = 0; i < 5; i++) {
                 Gym randomGym = gyms.get(random.nextInt(gyms.size()));
                 ClassType randomType = classTypes.get(random.nextInt(classTypes.size()));
                 User randomInstructor = instructors.get(random.nextInt(instructors.size()));
                 int hour = 7 + random.nextInt(14); // 7:00 to 21:00
-                
+
                 allGymClasses.add(createGymClass(randomType, randomInstructor, randomGym, dayDate.withHour(hour), 60, randomType.getDefaultCapacity()));
             }
         }
-        
+
         gymClassRepository.saveAll(allGymClasses);
 
         // ── Random Bookings ─────────────────────────────────────
@@ -105,11 +105,11 @@ public class DataSeeder implements CommandLineRunner {
         for (int i = 0; i < 50; i++) {
             User randomMember = members.get(random.nextInt(members.size()));
             GymClass randomClass = allGymClasses.get(random.nextInt(allGymClasses.size()));
-            
+
             boolean alreadyBooked = seedBookings.stream()
-                .anyMatch(b -> b.getUser().getEmail().equals(randomMember.getEmail()) && 
+                .anyMatch(b -> b.getUser().getEmail().equals(randomMember.getEmail()) &&
                                b.getGymClass().getId().equals(randomClass.getId()));
-            
+
             if (!alreadyBooked && !randomClass.isFull()) {
                 seedBookings.add(createBooking(randomMember, randomClass, BookingStatus.CONFIRMED));
             }
