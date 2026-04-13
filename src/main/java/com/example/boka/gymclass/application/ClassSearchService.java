@@ -23,6 +23,7 @@ public class ClassSearchService {
     private final ClassTypeRepository classTypeRepository;
     private final GymClassRepository gymClassRepository;
     private final BookingProviderPort bookingProviderPort;
+    private final InstructorProviderPort instructorProviderPort;
 
     public Page<GymClassResponse> searchClasses(String query, Pageable pageable) {
         List<ClassType> matchingTypes = classTypeRepository
@@ -40,24 +41,30 @@ public class ClassSearchService {
                 .findByClassTypeIdInAndStatusAndStartTimeAfter(
                         typeIds, ClassStatus.SCHEDULED, LocalDateTime.now(), pageable);
 
-        // Fetch actual booking counts via Port
+        // 1. Fetch actual booking counts via Port
         Set<Long> classIds = gymClasses.getContent().stream()
                 .map(GymClass::getId)
                 .collect(Collectors.toSet());
-
         Map<Long, Integer> bookingCounts = bookingProviderPort.getBookingCounts(classIds);
 
-        // Map to Response and calculate available spots
+        // 2. Fetch instructor details via Port
+        Set<Long> instructorIds = gymClasses.getContent().stream()
+                .map(GymClass::getInstructorId)
+                .collect(Collectors.toSet());
+        Map<Long, InstructorProviderPort.InstructorDetails> instructors =
+                instructorProviderPort.getInstructorDetails(instructorIds);
+
+        // 3. Map to Response and enrich data
         return gymClasses.map(gc -> {
             Integer currentBookings = bookingCounts.getOrDefault(gc.getId(), 0);
             gc.setAvailableSpots(gc.getCapacity() - currentBookings);
 
-            // Optionally update status if full
             if (gc.getAvailableSpots() <= 0) {
                 gc.setStatus(ClassStatus.FULL);
             }
 
-            return GymClassMapper.toResponse(gc);
+            InstructorProviderPort.InstructorDetails instructor = instructors.get(gc.getInstructorId());
+            return GymClassMapper.toResponse(gc, instructor);
         });
     }
 }

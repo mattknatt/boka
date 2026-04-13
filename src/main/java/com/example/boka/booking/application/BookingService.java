@@ -3,7 +3,9 @@ package com.example.boka.booking.application;
 import com.example.boka.booking.domain.Booking;
 import com.example.boka.booking.domain.BookingStatus;
 import com.example.boka.booking.infrastructure.BookingRepository;
+import com.example.boka.common.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +19,7 @@ public class BookingService {
     @Transactional
     public BookingResponse createBooking(Long gymClassId, String userEmail) {
         UserProviderPort.UserDetails user = userProviderPort.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException(userEmail));
 
         // Check if already booked
         bookingRepository.findByUserIdAndGymClassIdAndStatus(user.id(), gymClassId, BookingStatus.CONFIRMED)
@@ -28,7 +30,11 @@ public class BookingService {
         booking.setGymClassId(gymClassId);
         booking.setStatus(BookingStatus.CONFIRMED);
 
-        Booking saved = bookingRepository.save(booking);
-        return new BookingResponse(saved.getId(), gymClassId, user.email(), "CONFIRMED");
+        try {
+            Booking saved = bookingRepository.save(booking);
+            return new BookingResponse(saved.getId(), gymClassId, user.email(), "CONFIRMED");
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalStateException("Already booked this class");
+        }
     }
 }

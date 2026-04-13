@@ -1,8 +1,6 @@
 package com.example.boka.security;
 
 import com.example.boka.user.application.UserRegistrationRequest;
-import com.example.boka.user.domain.User;
-import com.example.boka.user.infrastructure.UserRepository;
 import org.springframework.validation.BindingResult;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -24,7 +23,7 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
-    private final UserRepository userRepository;
+    private final IdentityPort identityPort;
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(
@@ -71,16 +70,21 @@ public class AuthController {
             userInfo.put("picture", oAuth2User.getAttribute("picture"));
             userInfo.put("type", "OAUTH2");
             userInfo.put("role", role);
+            return ResponseEntity.ok(userInfo);
         } else if (principal instanceof UserDetails userDetails) {
-            User user = userRepository.findByEmail(userDetails.getUsername()).orElse(null);
-            if (user != null) {
-                userInfo.put("name", user.getFirstName() + " " + user.getLastName());
-                userInfo.put("email", user.getEmail());
+            Optional<IdentityPort.IdentityDetails> identity = identityPort.findByEmail(userDetails.getUsername());
+            if (identity.isPresent()) {
+                IdentityPort.IdentityDetails user = identity.get();
+                userInfo.put("name", user.firstName() + " " + user.lastName());
+                userInfo.put("email", user.email());
                 userInfo.put("type", "LOCAL");
-                userInfo.put("role", role != null ? role : user.getRole().name());
+                userInfo.put("role", role != null ? role : user.role());
+                return ResponseEntity.ok(userInfo);
+            } else {
+                return ResponseEntity.notFound().build();
             }
         }
 
-        return ResponseEntity.ok(userInfo);
+        return ResponseEntity.status(401).build();
     }
 }

@@ -5,9 +5,11 @@ import com.example.boka.gymclass.domain.GymInfo;
 import com.example.boka.gymclass.infrastructure.GymInfoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
 @RequiredArgsConstructor
@@ -16,8 +18,8 @@ public class GymEventListener {
 
     private final GymInfoRepository gymInfoRepository;
 
-    @EventListener
-    @Transactional
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleGymUpdated(GymUpdatedEvent event) {
         log.info("Updating gym info cache for gym ID: {}", event.id());
         GymInfo gymInfo = new GymInfo(event.id(), event.name(), event.address());

@@ -3,10 +3,11 @@ import React, {useState, useRef, useEffect, useCallback} from 'react';
 interface GymClass {
     id: number;
     classTypeName: string;
-    instructorFirstName: string;
-    instructorLastName: string;
-    gymName: string;
-    gymAddress: string;
+    instructorId: number;
+    instructorFirstName: string | null;
+    instructorLastName: string | null;
+    gymName: string | null;
+    gymAddress: string | null;
     startTime: string;
     endTime: string;
     capacity: number;
@@ -206,9 +207,11 @@ const ClassSearch: React.FC<ClassSearchProps> = ({ isLoggedIn }) => {
                                         }}>
                                             <div>
                                                 <h4 style={{marginTop: 0, marginBottom: '8px', color: '#ff1493', fontSize: '1.1rem'}}>{item.classTypeName}</h4>
-                                                <p style={{ margin: '4px 0', fontSize: '0.85rem' }}><strong>at {item.gymName}</strong></p>
-                                                <p style={{ margin: '4px 0', color: '#666', fontSize: '0.8rem' }}>{item.gymAddress}</p>
-                                                <p style={{ margin: '8px 0 4px 0' }}><strong>Instructor:</strong> {item.instructorFirstName}</p>
+                                                <p style={{ margin: '4px 0', fontSize: '0.85rem' }}><strong>at {item.gymName || 'Local Gym'}</strong></p>
+                                                {item.gymAddress && <p style={{ margin: '4px 0', color: '#666', fontSize: '0.8rem' }}>{item.gymAddress}</p>}
+                                                <p style={{ margin: '8px 0 4px 0' }}>
+                                                    <strong>Instructor:</strong> {item.instructorFirstName ? `${item.instructorFirstName} ${item.instructorLastName || ''}` : `ID: ${item.instructorId}`}
+                                                </p>
                                                 <p style={{ margin: '4px 0' }}><strong>Time:</strong> {new Date(item.startTime).toLocaleString('sv-SE', {
                                                     weekday: 'short',
                                                     day: 'numeric',

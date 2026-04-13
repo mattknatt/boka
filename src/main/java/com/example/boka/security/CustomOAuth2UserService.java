@@ -7,8 +7,6 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
@@ -28,16 +26,18 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String lastName = oAuth2User.getAttribute("family_name");
         String providerId = oAuth2User.getAttribute("sub");
 
+        // Safety check: ensure the email is actually verified by the provider
+        Boolean emailVerified = oAuth2User.getAttribute("email_verified");
+
         if (email == null) {
             throw new OAuth2AuthenticationException("Email not found from OAuth2 provider");
         }
 
-        Optional<IdentityPort.IdentityDetails> identityOptional = identityPort.findByEmail(email);
-        if (identityOptional.isPresent()) {
-            identityPort.updateOAuth2ProviderInfo(email, providerId);
-        } else {
-            identityPort.createLocalUser(email, firstName != null ? firstName : "", lastName != null ? lastName : "", null, "MEMBER");
-            identityPort.updateOAuth2ProviderInfo(email, providerId);
+        if (emailVerified == null || !emailVerified) {
+            throw new OAuth2AuthenticationException("Email address from OAuth2 provider is not verified");
         }
+
+        // Atomically create or update the user via the port
+        identityPort.createOrUpdateOAuth2User(email, firstName, lastName, providerId);
     }
 }

@@ -6,21 +6,19 @@ public final class GymClassMapper {
 
     private GymClassMapper() {}
 
-    public static GymClassResponse toResponse(GymClass gymClass) {
+    public static GymClassResponse toResponse(GymClass gymClass, InstructorProviderPort.InstructorDetails instructor) {
         if(gymClass == null) {
             return null;
         }
 
-        // In this modular design, we might fetch instructor info via a port if needed.
-        // For now, I'll just leave it empty or assume we only have IDs unless we join.
-
         return new GymClassResponse(
                 gymClass.getId(),
                 gymClass.getClassType() != null ? gymClass.getClassType().getName() : null,
-                "Instructor", // Placeholder or fetch via User module
-                String.valueOf(gymClass.getInstructorId()), // Placeholder
-                gymClass.getGym() != null ? gymClass.getGym().getName() : "Gym",
-                gymClass.getGym() != null ? gymClass.getGym().getAddress() : "Address",
+                gymClass.getInstructorId(),
+                instructor != null ? instructor.firstName() : null,
+                instructor != null ? instructor.lastName() : null,
+                gymClass.getGym() != null ? gymClass.getGym().getName() : null,
+                gymClass.getGym() != null ? gymClass.getGym().getAddress() : null,
                 gymClass.getStartTime() != null ? gymClass.getStartTime().toString() : null,
                 gymClass.getEndTime() != null ? gymClass.getEndTime().toString() : null,
                 gymClass.getCapacity(),

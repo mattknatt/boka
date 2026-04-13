@@ -19,14 +19,7 @@ public class IdentityAdapter implements IdentityPort {
     @Override
     public Optional<IdentityDetails> findByEmail(String email) {
         return userRepository.findByEmail(email)
-                .map(user -> new IdentityDetails(
-                        user.getId(),
-                        user.getEmail(),
-                        user.getFirstName(),
-                        user.getLastName(),
-                        user.getPasswordHash(),
-                        user.getRole().name()
-                ));
+                .map(this::toDetails);
     }
 
     @Override
@@ -46,8 +39,7 @@ public class IdentityAdapter implements IdentityPort {
         user.setAuthProvider(AuthProvider.LOCAL);
         user.setIsActive(true);
 
-        User saved = userRepository.save(user);
-        return new IdentityDetails(saved.getId(), saved.getEmail(), saved.getFirstName(), saved.getLastName(), saved.getPasswordHash(), saved.getRole().name());
+        return toDetails(userRepository.save(user));
     }
 
     @Override
@@ -58,5 +50,35 @@ public class IdentityAdapter implements IdentityPort {
             user.setProviderId(providerId);
             userRepository.save(user);
         });
+    }
+
+    @Override
+    @Transactional
+    public IdentityDetails createOrUpdateOAuth2User(String email, String firstName, String lastName, String providerId) {
+        User user = userRepository.findByEmail(email).orElseGet(() -> {
+            User newUser = new User();
+            newUser.setEmail(email);
+            newUser.setFirstName(firstName != null ? firstName : "");
+            newUser.setLastName(lastName != null ? lastName : "");
+            newUser.setRole(UserRole.MEMBER);
+            newUser.setIsActive(true);
+            return newUser;
+        });
+
+        user.setAuthProvider(AuthProvider.GOOGLE);
+        user.setProviderId(providerId);
+
+        return toDetails(userRepository.save(user));
+    }
+
+    private IdentityDetails toDetails(User user) {
+        return new IdentityDetails(
+                user.getId(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getPasswordHash(),
+                user.getRole().name()
+        );
     }
 }

@@ -37,7 +37,7 @@ public class BookingController {
 
         String email = getEmailFromAuthentication(authentication);
         if (email == null) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.status(401).body(Map.of("message", "User must be logged in to book a class"));
         }
 
         try {
