@@ -41,7 +41,7 @@ public class DataSeeder implements CommandLineRunner {
         User instructor1 = createUser("anna@boka.se", "Anna", "Johansson", UserRole.INSTRUCTOR, "070-222-2222");
         User instructor2 = createUser("erik@boka.se", "Erik", "Lindberg", UserRole.INSTRUCTOR, "070-333-3333");
         User instructor3 = createUser("sara@boka.se", "Sara", "Nilsson", UserRole.INSTRUCTOR, "070-444-4444");
-        
+
         List<User> members = List.of(
             createUser("karl@example.com", "Karl", "Svensson", UserRole.MEMBER, "070-555-5555"),
             createUser("lisa@example.com", "Lisa", "Eriksson", UserRole.MEMBER, "070-666-6666"),
@@ -69,29 +69,29 @@ public class DataSeeder implements CommandLineRunner {
         // ── Gym Classes (Rolling 14-day schedule) ────────────────
         List<User> instructors = List.of(instructor1, instructor2, instructor3);
         List<GymClass> allGymClasses = new ArrayList<>();
-        
+
         LocalDateTime startBase = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
 
         for (int day = 0; day < 14; day++) {
             LocalDateTime dayDate = startBase.plusDays(day);
-            
+
             // Morning classes (7:00, 8:00, 9:00)
             allGymClasses.add(createGymClass(classTypes.get(random.nextInt(classTypes.size())), instructors.get(0), dayDate.withHour(7), 60, 20));
             allGymClasses.add(createGymClass(classTypes.get(random.nextInt(classTypes.size())), instructors.get(1), dayDate.withHour(8), 45, 25));
-            
+
             // Lunch classes (11:30, 12:00)
             allGymClasses.add(createGymClass(classTypes.get(random.nextInt(classTypes.size())), instructors.get(2), dayDate.withHour(12), 45, 30));
-            
+
             // Afternoon/Evening classes (16:00, 17:00, 18:00, 19:00)
             allGymClasses.add(createGymClass(classTypes.get(random.nextInt(classTypes.size())), instructors.get(random.nextInt(instructors.size())), dayDate.withHour(17), 60, 15));
             allGymClasses.add(createGymClass(classTypes.get(random.nextInt(classTypes.size())), instructors.get(random.nextInt(instructors.size())), dayDate.withHour(18), 60, 20));
-            
+
             // Late evening (Monday & Wednesday)
             if (dayDate.getDayOfWeek().getValue() == 1 || dayDate.getDayOfWeek().getValue() == 3) {
                 allGymClasses.add(createGymClass(classTypes.get(random.nextInt(classTypes.size())), instructors.get(0), dayDate.withHour(20), 45, 20));
             }
         }
-        
+
         gymClassRepository.saveAll(allGymClasses);
 
         // ── Random Bookings ─────────────────────────────────────
@@ -100,12 +100,12 @@ public class DataSeeder implements CommandLineRunner {
         for (int i = 0; i < 30; i++) {
             User randomMember = members.get(random.nextInt(members.size()));
             GymClass randomClass = allGymClasses.get(random.nextInt(allGymClasses.size()));
-            
+
             // Only book if not already booked
             boolean alreadyBooked = seedBookings.stream()
-                .anyMatch(b -> b.getUser().getEmail().equals(randomMember.getEmail()) && 
+                .anyMatch(b -> b.getUser().getEmail().equals(randomMember.getEmail()) &&
                                b.getGymClass().getId().equals(randomClass.getId()));
-            
+
             if (!alreadyBooked) {
                 seedBookings.add(createBooking(randomMember, randomClass, BookingStatus.CONFIRMED));
             }
