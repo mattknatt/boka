@@ -5,16 +5,16 @@ import com.example.boka.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 @Component
-@Profile("dev")
 @RequiredArgsConstructor
 @Slf4j
 public class DataSeeder implements CommandLineRunner {
@@ -24,6 +24,7 @@ public class DataSeeder implements CommandLineRunner {
     private final GymClassRepository gymClassRepository;
     private final BookingRepository bookingRepository;
     private final PasswordEncoder passwordEncoder;
+    private final Random random = new Random();
 
     @Override
     @Transactional
@@ -40,136 +41,86 @@ public class DataSeeder implements CommandLineRunner {
         User instructor1 = createUser("anna@boka.se", "Anna", "Johansson", UserRole.INSTRUCTOR, "070-222-2222");
         User instructor2 = createUser("erik@boka.se", "Erik", "Lindberg", UserRole.INSTRUCTOR, "070-333-3333");
         User instructor3 = createUser("sara@boka.se", "Sara", "Nilsson", UserRole.INSTRUCTOR, "070-444-4444");
-        User member1 = createUser("karl@example.com", "Karl", "Svensson", UserRole.MEMBER, "070-555-5555");
-        User member2 = createUser("lisa@example.com", "Lisa", "Eriksson", UserRole.MEMBER, "070-666-6666");
-        User member3 = createUser("oscar@example.com", "Oscar", "Berg", UserRole.MEMBER, "070-777-7777");
-        User member4 = createUser("emma@example.com", "Emma", "Gustafsson", UserRole.MEMBER, "070-888-8888");
-        User member5 = createUser("johan@example.com", "Johan", "Persson", UserRole.MEMBER, "070-999-9999");
+        
+        List<User> members = List.of(
+            createUser("karl@example.com", "Karl", "Svensson", UserRole.MEMBER, "070-555-5555"),
+            createUser("lisa@example.com", "Lisa", "Eriksson", UserRole.MEMBER, "070-666-6666"),
+            createUser("oscar@example.com", "Oscar", "Berg", UserRole.MEMBER, "070-777-7777"),
+            createUser("emma@example.com", "Emma", "Gustafsson", UserRole.MEMBER, "070-888-8888"),
+            createUser("johan@example.com", "Johan", "Persson", UserRole.MEMBER, "070-999-9999")
+        );
 
-        userRepository.saveAll(List.of(admin, instructor1, instructor2, instructor3,
-                member1, member2, member3, member4, member5));
+        userRepository.saveAll(List.of(admin, instructor1, instructor2, instructor3));
+        userRepository.saveAll(members);
 
         // ── Class Types ──────────────────────────────────────────
-        ClassType yoga = createClassType("Yoga",
-                "A calming practice focused on flexibility, balance, and mindfulness. "
-                        + "Improve your posture, reduce stress, and connect body and mind through "
-                        + "controlled breathing and gentle stretching poses. Suitable for all levels.",
-                20, 60);
-
-        ClassType hiit = createClassType("HIIT",
-                "High-intensity interval training designed to maximize calorie burn and "
-                        + "boost cardiovascular fitness. Short bursts of explosive exercises followed "
-                        + "by brief rest periods. Great for fat loss and building endurance.",
-                25, 45);
-
-        ClassType strength = createClassType("Strength Training",
-                "Build muscle, increase power, and improve bone density with progressive "
-                        + "resistance training using free weights, barbells, and machines. "
-                        + "Focus on compound movements like squats, deadlifts, and bench press.",
-                15, 60);
-
-        ClassType spinning = createClassType("Spinning",
-                "An intense indoor cycling workout set to energizing music. "
-                        + "Burn calories, strengthen your legs and core, and improve cardiovascular "
-                        + "health with guided sprints, hill climbs, and interval rides.",
-                30, 45);
-
-        ClassType pilates = createClassType("Pilates",
-                "A low-impact workout emphasizing core strength, flexibility, and body awareness. "
-                        + "Controlled movements improve posture, muscle tone, and joint mobility. "
-                        + "Perfect for rehabilitation and injury prevention.",
-                18, 50);
-
-        ClassType boxing = createClassType("Boxing Fitness",
-                "A high-energy workout combining boxing techniques with cardio conditioning. "
-                        + "Learn jabs, hooks, and uppercuts while building speed, agility, coordination, "
-                        + "and total-body strength. Great stress relief.",
-                20, 60);
-
-        ClassType zumba = createClassType("Zumba",
-                "A fun dance-fitness party with Latin and international music. "
-                        + "Easy-to-follow choreography makes it feel like a night out rather than a workout. "
-                        + "Burns calories while improving rhythm, coordination, and mood.",
-                35, 55);
-
-        ClassType crossfit = createClassType("CrossFit",
-                "A varied functional fitness program combining weightlifting, gymnastics, "
-                        + "and metabolic conditioning. Constantly varied, high-intensity workouts "
-                        + "designed to improve overall physical preparedness and athleticism.",
-                16, 60);
+        ClassType yoga = createClassType("Yoga", "A calming practice focused on flexibility and mindfulness.", 20, 60);
+        ClassType hiit = createClassType("HIIT", "High-intensity interval training for maximum calorie burn.", 25, 45);
+        ClassType strength = createClassType("Strength", "Progressive resistance training to build muscle.", 15, 60);
+        ClassType spinning = createClassType("Spinning", "Intense indoor cycling workout.", 30, 45);
+        ClassType pilates = createClassType("Pilates", "Core strength, flexibility, and body awareness.", 18, 50);
+        ClassType boxing = createClassType("Boxing", "High-energy boxing techniques and cardio.", 20, 60);
+        ClassType zumba = createClassType("Zumba", "Dance-fitness party with international music.", 35, 55);
+        ClassType crossfit = createClassType("CrossFit", "Varied functional fitness at high intensity.", 16, 60);
 
         List<ClassType> classTypes = List.of(yoga, hiit, strength, spinning, pilates, boxing, zumba, crossfit);
         classTypeRepository.saveAll(classTypes);
 
-        // ── Gym Classes (next 5 days) ───────────────────────────
-        LocalDateTime tomorrow = LocalDateTime.now().plusDays(1).withHour(8).withMinute(0).withSecond(0).withNano(0);
+        // ── Gym Classes (Rolling 14-day schedule) ────────────────
+        List<User> instructors = List.of(instructor1, instructor2, instructor3);
+        List<GymClass> allGymClasses = new ArrayList<>();
+        
+        LocalDateTime startBase = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
 
-        // Day 1
-        GymClass yogaMon = createGymClass(yoga, instructor1, tomorrow.withHour(7), 60, 20);
-        GymClass hiitMon = createGymClass(hiit, instructor2, tomorrow.withHour(9), 45, 25);
-        GymClass spinMon = createGymClass(spinning, instructor3, tomorrow.withHour(12), 45, 30);
-        GymClass strengthMon = createGymClass(strength, instructor2, tomorrow.withHour(17), 60, 15);
+        for (int day = 0; day < 14; day++) {
+            LocalDateTime dayDate = startBase.plusDays(day);
+            
+            // Morning classes (7:00, 8:00, 9:00)
+            allGymClasses.add(createGymClass(classTypes.get(random.nextInt(classTypes.size())), instructors.get(0), dayDate.withHour(7), 60, 20));
+            allGymClasses.add(createGymClass(classTypes.get(random.nextInt(classTypes.size())), instructors.get(1), dayDate.withHour(8), 45, 25));
+            
+            // Lunch classes (11:30, 12:00)
+            allGymClasses.add(createGymClass(classTypes.get(random.nextInt(classTypes.size())), instructors.get(2), dayDate.withHour(12), 45, 30));
+            
+            // Afternoon/Evening classes (16:00, 17:00, 18:00, 19:00)
+            allGymClasses.add(createGymClass(classTypes.get(random.nextInt(classTypes.size())), instructors.get(random.nextInt(instructors.size())), dayDate.withHour(17), 60, 15));
+            allGymClasses.add(createGymClass(classTypes.get(random.nextInt(classTypes.size())), instructors.get(random.nextInt(instructors.size())), dayDate.withHour(18), 60, 20));
+            
+            // Late evening (Monday & Wednesday)
+            if (dayDate.getDayOfWeek().getValue() == 1 || dayDate.getDayOfWeek().getValue() == 3) {
+                allGymClasses.add(createGymClass(classTypes.get(random.nextInt(classTypes.size())), instructors.get(0), dayDate.withHour(20), 45, 20));
+            }
+        }
+        
+        gymClassRepository.saveAll(allGymClasses);
 
-        // Day 2
-        GymClass pilatesTue = createGymClass(pilates, instructor1, tomorrow.plusDays(1).withHour(8), 50, 18);
-        GymClass boxingTue = createGymClass(boxing, instructor3, tomorrow.plusDays(1).withHour(10), 60, 20);
-        GymClass zumbaTue = createGymClass(zumba, instructor1, tomorrow.plusDays(1).withHour(18), 55, 35);
-
-        // Day 3
-        GymClass crossfitWed = createGymClass(crossfit, instructor2, tomorrow.plusDays(2).withHour(7), 60, 16);
-        GymClass yogaWed = createGymClass(yoga, instructor1, tomorrow.plusDays(2).withHour(12), 60, 20);
-        GymClass hiitWed = createGymClass(hiit, instructor3, tomorrow.plusDays(2).withHour(17), 45, 25);
-
-        // Day 4
-        GymClass spinThu = createGymClass(spinning, instructor3, tomorrow.plusDays(3).withHour(9), 45, 30);
-        GymClass strengthThu = createGymClass(strength, instructor2, tomorrow.plusDays(3).withHour(11), 60, 15);
-        GymClass pilatesThu = createGymClass(pilates, instructor1, tomorrow.plusDays(3).withHour(16), 50, 18);
-
-        // Day 5
-        GymClass boxingFri = createGymClass(boxing, instructor3, tomorrow.plusDays(4).withHour(8), 60, 20);
-        GymClass zumbaFri = createGymClass(zumba, instructor1, tomorrow.plusDays(4).withHour(17), 55, 35);
-        GymClass crossfitFri = createGymClass(crossfit, instructor2, tomorrow.plusDays(4).withHour(18), 60, 16);
-
-        List<GymClass> gymClasses = List.of(
-                yogaMon, hiitMon, spinMon, strengthMon,
-                pilatesTue, boxingTue, zumbaTue,
-                crossfitWed, yogaWed, hiitWed,
-                spinThu, strengthThu, pilatesThu,
-                boxingFri, zumbaFri, crossfitFri
-        );
-        gymClassRepository.saveAll(gymClasses);
-
-        // ── Bookings ─────────────────────────────────────────────
-        // member1 likes: Yoga, Spinning, CrossFit
-        // member2 likes: Yoga, Strength
-        // member3 likes: HIIT, Pilates
-        bookingRepository.saveAll(List.of(
-                createBooking(member1, yogaMon, BookingStatus.CONFIRMED),
-                createBooking(member2, yogaMon, BookingStatus.CONFIRMED),
-                createBooking(member3, hiitMon, BookingStatus.CONFIRMED),
-                createBooking(member4, hiitMon, BookingStatus.CONFIRMED),
-                createBooking(member5, hiitMon, BookingStatus.CONFIRMED),
-                createBooking(member1, spinMon, BookingStatus.CONFIRMED),
-                createBooking(member2, strengthMon, BookingStatus.CONFIRMED),
-                createBooking(member3, pilatesTue, BookingStatus.CONFIRMED),
-                createBooking(member4, boxingTue, BookingStatus.CONFIRMED),
-                createBooking(member5, zumbaTue, BookingStatus.CONFIRMED),
-                createBooking(member1, crossfitWed, BookingStatus.CONFIRMED),
-                createBooking(member2, yogaWed, BookingStatus.CONFIRMED),
-                createBooking(member3, boxingFri, BookingStatus.CONFIRMED)
-        ));
+        // ── Random Bookings ─────────────────────────────────────
+        // Let's seed some initial bookings to make it look active
+        List<Booking> seedBookings = new ArrayList<>();
+        for (int i = 0; i < 30; i++) {
+            User randomMember = members.get(random.nextInt(members.size()));
+            GymClass randomClass = allGymClasses.get(random.nextInt(allGymClasses.size()));
+            
+            // Only book if not already booked
+            boolean alreadyBooked = seedBookings.stream()
+                .anyMatch(b -> b.getUser().getEmail().equals(randomMember.getEmail()) && 
+                               b.getGymClass().getId().equals(randomClass.getId()));
+            
+            if (!alreadyBooked) {
+                seedBookings.add(createBooking(randomMember, randomClass, BookingStatus.CONFIRMED));
+            }
+        }
+        bookingRepository.saveAll(seedBookings);
 
         log.info("Database seeding complete! Created {} users, {} class types, {} gym classes, {} bookings.",
                 userRepository.count(), classTypeRepository.count(),
                 gymClassRepository.count(), bookingRepository.count());
     }
 
-    // ── Factory helpers ──────────────────────────────────────────
-
     private User createUser(String email, String firstName, String lastName, UserRole role, String phone) {
         User user = new User();
         user.setEmail(email);
-        user.setPasswordHash(passwordEncoder.encode("password123")); // Real hashed password
+        user.setPasswordHash(passwordEncoder.encode("password123"));
         user.setFirstName(firstName);
         user.setLastName(lastName);
         user.setPhoneNumber(phone);
