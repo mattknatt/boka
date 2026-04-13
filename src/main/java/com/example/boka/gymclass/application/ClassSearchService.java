@@ -44,19 +44,19 @@ public class ClassSearchService {
         Set<Long> classIds = gymClasses.getContent().stream()
                 .map(GymClass::getId)
                 .collect(Collectors.toSet());
-        
+
         Map<Long, Integer> bookingCounts = bookingProviderPort.getBookingCounts(classIds);
 
         // Map to Response and calculate available spots
         return gymClasses.map(gc -> {
             Integer currentBookings = bookingCounts.getOrDefault(gc.getId(), 0);
             gc.setAvailableSpots(gc.getCapacity() - currentBookings);
-            
+
             // Optionally update status if full
             if (gc.getAvailableSpots() <= 0) {
                 gc.setStatus(ClassStatus.FULL);
             }
-            
+
             return GymClassMapper.toResponse(gc);
         });
     }
