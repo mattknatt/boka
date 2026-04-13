@@ -1,6 +1,5 @@
 package com.example.boka.security;
 
-import com.example.boka.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -17,22 +16,22 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class CustomGrantedAuthoritiesMapper implements GrantedAuthoritiesMapper {
 
-    private final UserRepository userRepository;
+    private final IdentityPort identityPort;
 
     @Override
     public Collection<? extends GrantedAuthority> mapAuthorities(Collection<? extends GrantedAuthority> authorities) {
         Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
 
         authorities.forEach(authority -> {
-            mappedAuthorities.add(authority); // Keep original authorities (like SCOPE_...)
+            mappedAuthorities.add(authority);
 
             if (authority instanceof OAuth2UserAuthority oauth2UserAuthority) {
                 Map<String, Object> attributes = oauth2UserAuthority.getAttributes();
                 String email = (String) attributes.get("email");
 
                 if (email != null) {
-                    userRepository.findByEmail(email).ifPresent(user -> {
-                        mappedAuthorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+                    identityPort.findByEmail(email).ifPresent(identity -> {
+                        mappedAuthorities.add(new SimpleGrantedAuthority("ROLE_" + identity.role()));
                     });
                 }
             }

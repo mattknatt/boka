@@ -1,7 +1,5 @@
 package com.example.boka.security;
 
-import com.example.boka.entity.User;
-import com.example.boka.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,17 +13,17 @@ import java.util.Collections;
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final UserRepository userRepository;
+    private final IdentityPort identityPort;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email)
+        IdentityPort.IdentityDetails identity = identityPort.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
         return new org.springframework.security.core.userdetails.User(
-                user.getEmail(),
-                user.getPasswordHash() != null ? user.getPasswordHash() : "", // Handle OAuth2 users without local password
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+                identity.email(),
+                identity.passwordHash() != null ? identity.passwordHash() : "",
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + identity.role()))
         );
     }
 }

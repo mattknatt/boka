@@ -1,5 +1,6 @@
 package com.example.boka.security;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,8 +18,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
@@ -48,7 +47,6 @@ public class SecurityConfig {
     }
 
     private String getFrontendUrl() {
-        // For redirects, we take the first allowed origin
         return getAllowedOrigins().get(0);
     }
 
