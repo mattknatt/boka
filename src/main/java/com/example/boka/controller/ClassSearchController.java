@@ -3,11 +3,12 @@ package com.example.boka.controller;
 import com.example.boka.dto.GymClassResponse;
 import com.example.boka.service.ClassSearchService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/classes")
@@ -17,14 +18,14 @@ public class ClassSearchController {
     private final ClassSearchService classSearchService;
 
     /**
-     * Simple search: find classes by name
+     * Paginated search: find classes by name
      */
     @GetMapping("/search")
-    public ResponseEntity<List<GymClassResponse>> searchClasses(
+    public ResponseEntity<Page<GymClassResponse>> searchClasses(
             @RequestParam String query,
-            @RequestParam(defaultValue = "10") int limit
+            @PageableDefault(size = 8) Pageable pageable
     ) {
-        List<GymClassResponse> results = classSearchService.searchClasses(query, limit);
+        Page<GymClassResponse> results = classSearchService.searchClasses(query, pageable);
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.noCache().mustRevalidate())
                 .body(results);

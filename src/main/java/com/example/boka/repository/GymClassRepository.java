@@ -2,6 +2,8 @@ package com.example.boka.repository;
 
 import com.example.boka.entity.ClassStatus;
 import com.example.boka.entity.GymClass;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
@@ -21,7 +23,7 @@ public interface GymClassRepository extends JpaRepository<GymClass, Long> {
 
     List<GymClass> findByStatusAndStartTimeAfter(ClassStatus status, LocalDateTime time);
 
-    List<GymClass> findByClassTypeIdInAndStatusAndStartTimeAfter(
-            List<Long> classTypeIds, ClassStatus status, LocalDateTime time
+    Page<GymClass> findByClassTypeIdInAndStatusAndStartTimeAfter(
+            List<Long> classTypeIds, ClassStatus status, LocalDateTime time, Pageable pageable
     );
 }

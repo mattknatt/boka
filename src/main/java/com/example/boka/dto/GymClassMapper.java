@@ -15,12 +15,13 @@ public final class GymClassMapper {
                 gymClass.getClassType() != null ? gymClass.getClassType().getName() : null,
                 gymClass.getInstructor() != null ? gymClass.getInstructor().getFirstName() : null,
                 gymClass.getInstructor() != null ? gymClass.getInstructor().getLastName() : null,
-                gymClass.getStartTime(),
-                gymClass.getEndTime(),
+                gymClass.getGym() != null ? gymClass.getGym().getName() : null,
+                gymClass.getGym() != null ? gymClass.getGym().getAddress() : null,
+                gymClass.getStartTime() != null ? gymClass.getStartTime().toString() : null,
+                gymClass.getEndTime() != null ? gymClass.getEndTime().toString() : null,
                 gymClass.getCapacity(),
                 gymClass.getAvailableSpots(),
-                gymClass.getStatus(),
-                gymClass.getCreatedAt()
+                gymClass.getStatus() != null ? gymClass.getStatus().name() : null
         );
     }
 }
