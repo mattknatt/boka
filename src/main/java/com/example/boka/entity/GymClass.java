@@ -29,6 +29,10 @@ public class GymClass {
     @JoinColumn(name = "instructor_id", nullable = false)
     private User instructor;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "gym_id", nullable = false)
+    private Gym gym;
+
     @Column(nullable = false)
     private LocalDateTime startTime;
 

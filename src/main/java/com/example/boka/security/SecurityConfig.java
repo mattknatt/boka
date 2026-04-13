@@ -60,7 +60,7 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/index.html", "/static/**", "/assets/**", "/api/classes/**", "/api/auth/me", "/api/auth/register").permitAll()
+                .requestMatchers("/", "/index.html", "/static/**", "/assets/**", "/api/classes/**", "/api/gyms/**", "/api/auth/me", "/api/auth/register").permitAll()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
