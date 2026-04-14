@@ -7,6 +7,7 @@ import com.example.boka.gymclass.domain.ClassStatus;
 import com.example.boka.gymclass.domain.GymClass;
 import com.example.boka.gymclass.domain.ClassTypeRepository;
 import com.example.boka.gymclass.domain.GymClassRepository;
+import com.example.boka.user.UserProviderPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,8 +27,9 @@ public class ClassSearchService {
     private final GymClassRepository gymClassRepository;
     private final BookingProviderPort bookingProviderPort;
     private final InstructorProviderPort instructorProviderPort;
+    private final UserProviderPort userProviderPort;
 
-    public Page<GymClassResponse> searchClasses(String query, Pageable pageable) {
+    public Page<GymClassResponse> searchClasses(String query, String currentUserEmail, Pageable pageable) {
         List<ClassType> matchingTypes = classTypeRepository
                 .findByNameContainingIgnoreCaseAndIsActiveTrue(query);
 
@@ -56,7 +58,16 @@ public class ClassSearchService {
         Map<Long, InstructorProviderPort.InstructorDetails> instructors =
                 instructorProviderPort.getInstructorDetails(instructorIds);
 
-        // 3. Map to Response and enrich data
+        // 3. Fetch current user's bookings if logged in
+        Set<Long> userBookedClassIds = Set.of();
+        if (currentUserEmail != null) {
+            userBookedClassIds = userProviderPort.findByEmail(currentUserEmail)
+                    .map(u -> bookingProviderPort.getBookedClassIds(u.id(), classIds))
+                    .orElse(Set.of());
+        }
+
+        // 4. Map to Response and enrich data
+        final Set<Long> finalUserBookedClassIds = userBookedClassIds;
         return gymClasses.map(gc -> {
             int currentBookings = bookingCounts.getOrDefault(gc.getId(), 0);
             int availableSpots = Math.max(0, gc.getCapacity() - currentBookings);
@@ -66,8 +77,10 @@ public class ClassSearchService {
                 derivedStatus = ClassStatus.FULL;
             }
 
+            boolean userHasBooked = finalUserBookedClassIds.contains(gc.getId());
+
             InstructorProviderPort.InstructorDetails instructor = instructors.get(gc.getInstructorId());
-            return GymClassMapper.toResponse(gc, instructor, availableSpots, derivedStatus);
+            return GymClassMapper.toResponse(gc, instructor, availableSpots, derivedStatus, userHasBooked);
         });
     }
 }

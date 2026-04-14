@@ -12,5 +12,6 @@ public record GymClassResponse(
         String endTime,
         Integer capacity,
         Integer availableSpots,
-        String status
+        String status,
+        boolean userHasBooked
 ) {}

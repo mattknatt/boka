@@ -13,6 +13,7 @@ interface GymClass {
     capacity: number;
     availableSpots: number;
     status: string;
+    userHasBooked: boolean;
 }
 
 interface PageResponse<T> {
@@ -88,7 +89,14 @@ const ClassSearch: React.FC<ClassSearchProps> = ({isLoggedIn}) => {
         if (hasSearched) {
             performSearch(query, page);
         }
-    }, [page, performSearch]);
+    }, [page, performSearch, hasSearched, query]);
+
+    // Refresh results when login status changes to update userHasBooked flags
+    useEffect(() => {
+        if (hasSearched) {
+            performSearch(query, page);
+        }
+    }, [isLoggedIn, performSearch, hasSearched, query, page]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -129,6 +137,35 @@ const ClassSearch: React.FC<ClassSearchProps> = ({isLoggedIn}) => {
             }
         } catch {
             setError('An error occurred while booking.');
+        } finally {
+            setBookingLoading(prev => ({...prev, [classId]: false}));
+        }
+    };
+
+    const handleCancelBooking = async (classId: number) => {
+        if (!isLoggedIn) return;
+
+        if (!window.confirm('Are you sure you want to cancel this booking?')) {
+            return;
+        }
+
+        setBookingLoading(prev => ({...prev, [classId]: true}));
+        setError(null);
+
+        try {
+            const response = await fetch(`/api/bookings/${classId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                alert('Booking cancelled!');
+                performSearch(query, page);
+            } else {
+                const data = await response.json();
+                setError(data.message || 'Failed to cancel booking.');
+            }
+        } catch {
+            setError('An error occurred while cancelling the booking.');
         } finally {
             setBookingLoading(prev => ({...prev, [classId]: false}));
         }
@@ -196,6 +233,7 @@ const ClassSearch: React.FC<ClassSearchProps> = ({isLoggedIn}) => {
                                 {results.map((item) => {
                                     const isFull = item.availableSpots <= 0 || item.status === 'FULL';
                                     const isLoading = bookingLoading[item.id];
+                                    const hasBooked = item.userHasBooked;
 
                                     return (
                                         <li key={item.id} style={{
@@ -260,25 +298,47 @@ const ClassSearch: React.FC<ClassSearchProps> = ({isLoggedIn}) => {
                                                 </div>
                                             </div>
 
-                                            <button
-                                                onClick={() => handleBookClass(item.id)}
-                                                disabled={!isLoggedIn || isFull || isLoading}
-                                                style={{
-                                                    width: '100%',
-                                                    padding: '8px',
-                                                    borderRadius: '4px',
-                                                    border: 'none',
-                                                    fontWeight: '600',
-                                                    fontSize: '0.85rem',
-                                                    cursor: (!isLoggedIn || isFull || isLoading) ? 'not-allowed' : 'pointer',
-                                                    backgroundColor: !isLoggedIn ? '#f0f0f0' : (isFull ? '#eee' : '#ff1493'),
-                                                    color: !isLoggedIn ? '#999' : (isFull ? '#999' : 'white'),
-                                                    transition: 'opacity 0.2s',
-                                                    opacity: isLoading ? 0.7 : 1
-                                                }}
-                                            >
-                                                {!isLoggedIn ? 'Log in to book' : (isFull ? 'Full' : (isLoading ? '...' : 'Book'))}
-                                            </button>
+                                            {hasBooked ? (
+                                                <button
+                                                    onClick={() => handleCancelBooking(item.id)}
+                                                    disabled={isLoading}
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '8px',
+                                                        borderRadius: '4px',
+                                                        border: '2px solid #ff1493',
+                                                        backgroundColor: 'transparent',
+                                                        color: '#ff1493',
+                                                        fontWeight: '600',
+                                                        fontSize: '0.85rem',
+                                                        cursor: isLoading ? 'not-allowed' : 'pointer',
+                                                        transition: 'all 0.2s',
+                                                        opacity: isLoading ? 0.7 : 1
+                                                    }}
+                                                >
+                                                    {isLoading ? '...' : 'Cancel Booking'}
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={() => handleBookClass(item.id)}
+                                                    disabled={!isLoggedIn || isFull || isLoading}
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '8px',
+                                                        borderRadius: '4px',
+                                                        border: 'none',
+                                                        fontWeight: '600',
+                                                        fontSize: '0.85rem',
+                                                        cursor: (!isLoggedIn || isFull || isLoading) ? 'not-allowed' : 'pointer',
+                                                        backgroundColor: !isLoggedIn ? '#f0f0f0' : (isFull ? '#eee' : '#ff1493'),
+                                                        color: !isLoggedIn ? '#999' : (isFull ? '#999' : 'white'),
+                                                        transition: 'opacity 0.2s',
+                                                        opacity: isLoading ? 0.7 : 1
+                                                    }}
+                                                >
+                                                    {!isLoggedIn ? 'Log in to book' : (isFull ? 'Full' : (isLoading ? '...' : 'Book'))}
+                                                </button>
+                                            )}
                                         </li>
                                     );
                                 })}

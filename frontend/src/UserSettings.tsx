@@ -43,7 +43,7 @@ const UserSettings: React.FC<UserSettingsProps> = ({ onLogout, onBack }) => {
             } else {
                 setErrors({ general: 'Failed to load user details.' });
             }
-        } catch (err) {
+        } catch {
             setErrors({ general: 'An error occurred while fetching user details.' });
         } finally {
             setLoading(false);
@@ -82,7 +82,7 @@ const UserSettings: React.FC<UserSettingsProps> = ({ onLogout, onBack }) => {
                     setErrors({ general: data.message || 'Failed to update profile.' });
                 }
             }
-        } catch (err) {
+        } catch {
             setErrors({ general: 'An error occurred while updating profile.' });
         } finally {
             setSaving(false);
@@ -105,7 +105,7 @@ const UserSettings: React.FC<UserSettingsProps> = ({ onLogout, onBack }) => {
             } else {
                 setErrors({ general: 'Failed to delete account.' });
             }
-        } catch (err) {
+        } catch {
             setErrors({ general: 'An error occurred while deleting account.' });
         }
     };

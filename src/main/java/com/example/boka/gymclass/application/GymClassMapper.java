@@ -12,7 +12,8 @@ public final class GymClassMapper {
             GymClass gymClass,
             InstructorProviderPort.InstructorDetails instructor,
             int availableSpots,
-            ClassStatus status
+            ClassStatus status,
+            boolean userHasBooked
     ) {
         if(gymClass == null) {
             return null;
@@ -30,7 +31,8 @@ public final class GymClassMapper {
                 gymClass.getEndTime() != null ? gymClass.getEndTime().toString() : null,
                 gymClass.getCapacity(),
                 availableSpots,
-                status != null ? status.name() : null
+                status != null ? status.name() : null,
+                userHasBooked
         );
     }
 }
