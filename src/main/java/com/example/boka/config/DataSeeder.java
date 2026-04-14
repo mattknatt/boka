@@ -3,6 +3,8 @@ package com.example.boka.config;
 import com.example.boka.booking.domain.BookingRepository;
 import com.example.boka.gym.application.GymService;
 import com.example.boka.gym.domain.Gym;
+import com.example.boka.gym.domain.GymInfo;
+import com.example.boka.gym.domain.GymInfoRepository;
 import com.example.boka.gym.domain.GymRepository;
 import com.example.boka.gymclass.domain.ClassStatus;
 import com.example.boka.gymclass.domain.ClassType;
@@ -37,7 +39,8 @@ public class DataSeeder implements CommandLineRunner {
     private final GymClassRepository gymClassRepository;
     private final BookingRepository bookingRepository;
     private final GymRepository gymRepository;
-    private final GymService gymService; // Use service to trigger events
+    private final GymService gymService;
+    private final GymInfoRepository gymInfoRepository; // For manual cache sync
     private final PasswordEncoder passwordEncoder;
     private final Random random = new Random();
 
@@ -59,6 +62,12 @@ public class DataSeeder implements CommandLineRunner {
         gyms.add(gymService.saveGym(createGymEntity("Boka Hisingen", "Kvilletorget 2, 417 04 Göteborg", 57.7211, 11.9311)));
         gyms.add(gymService.saveGym(createGymEntity("Boka Johanneberg", "Gibraltargatan 10, 412 58 Göteborg", 57.6891, 11.9811)));
         gyms.add(gymService.saveGym(createGymEntity("Boka Olskroken", "Redbergsplatsen 1, 416 67 Göteborg", 57.7111, 12.0011)));
+
+        // Synchronously populate the gym_info_cache for the gymclass module.
+        // This avoids FK violations because the TransactionalEventListener won't run until this method commits.
+        for (Gym gym : gyms) {
+            gymInfoRepository.save(new GymInfo(gym.getId(), gym.getName(), gym.getAddress()));
+        }
 
         // ── Users ────────────────────────────────────────────────
         User admin = createUser("admin@boka.se", "Admin", "Adminsson", UserRole.ADMIN, "070-111-1111");
@@ -95,7 +104,7 @@ public class DataSeeder implements CommandLineRunner {
             for (int i = 0; i < 3; i++) {
                 Gym randomGym = gyms.get(random.nextInt(gyms.size()));
                 ClassType randomType = classTypes.get(random.nextInt(classTypes.size()));
-                User randomInstructor = instructor1; // Simplified
+                User randomInstructor = instructor1;
 
                 allGymClasses.add(createGymClass(randomType, randomInstructor.getId(), randomGym.getId(), dayDate.withHour(8 + i * 4), 60, randomType.getDefaultCapacity()));
             }
