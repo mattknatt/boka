@@ -1,4 +1,4 @@
-package com.example.boka.gym.domain.event;
+package com.example.boka.gym;
 
 public record GymUpdatedEvent(
         Long id,

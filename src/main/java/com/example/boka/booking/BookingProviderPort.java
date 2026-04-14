@@ -1,4 +1,4 @@
-package com.example.boka.gymclass.application;
+package com.example.boka.booking;
 
 import java.util.Map;
 import java.util.Set;

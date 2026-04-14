@@ -1,6 +1,6 @@
 package com.example.boka.user.infrastructure;
 
-import com.example.boka.booking.application.UserProviderPort;
+import com.example.boka.user.UserProviderPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

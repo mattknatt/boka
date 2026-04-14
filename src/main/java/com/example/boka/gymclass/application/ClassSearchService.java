@@ -1,5 +1,7 @@
 package com.example.boka.gymclass.application;
 
+import com.example.boka.booking.BookingProviderPort;
+import com.example.boka.gymclass.InstructorProviderPort;
 import com.example.boka.gymclass.domain.ClassType;
 import com.example.boka.gymclass.domain.ClassStatus;
 import com.example.boka.gymclass.domain.GymClass;

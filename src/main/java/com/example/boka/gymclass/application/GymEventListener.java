@@ -1,6 +1,6 @@
 package com.example.boka.gymclass.application;
 
-import com.example.boka.gym.domain.event.GymUpdatedEvent;
+import com.example.boka.gym.GymUpdatedEvent;
 import com.example.boka.gymclass.domain.GymInfo;
 import com.example.boka.gymclass.infrastructure.GymInfoRepository;
 import lombok.RequiredArgsConstructor;

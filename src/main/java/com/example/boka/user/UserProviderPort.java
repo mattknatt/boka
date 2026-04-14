@@ -1,4 +1,4 @@
-package com.example.boka.booking.application;
+package com.example.boka.user;
 
 import java.util.Optional;
 

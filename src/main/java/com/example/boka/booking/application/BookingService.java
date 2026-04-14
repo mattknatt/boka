@@ -4,6 +4,7 @@ import com.example.boka.booking.domain.Booking;
 import com.example.boka.booking.domain.BookingStatus;
 import com.example.boka.booking.infrastructure.BookingRepository;
 import com.example.boka.common.UserNotFoundException;
+import com.example.boka.user.UserProviderPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;

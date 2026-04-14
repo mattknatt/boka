@@ -1,6 +1,6 @@
-package com.example.boka.booking.infrastructure;
+package com.example.boka.booking;
 
-import com.example.boka.gymclass.application.BookingProviderPort;
+import com.example.boka.booking.infrastructure.BookingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

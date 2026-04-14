@@ -8,15 +8,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
-@Transactional
 @ActiveProfiles("test")
 class GymInfoIntegrationTest {
 
@@ -38,11 +37,14 @@ class GymInfoIntegrationTest {
         // Act
         Gym savedGym = gymService.saveGym(gym);
 
-        // Assert: Check if the event listener in gymclass module updated the cache
-        Optional<GymInfo> cachedInfo = gymInfoRepository.findById(savedGym.getId());
+        // Assert: Wait for the asynchronous AFTER_COMMIT event to update the cache
+        await().atMost(5, TimeUnit.SECONDS).until(() -> {
+            Optional<GymInfo> cachedInfo = gymInfoRepository.findById(savedGym.getId());
+            return cachedInfo.isPresent();
+        });
 
-        assertTrue(cachedInfo.isPresent(), "GymInfo should be present in cache after event publication");
-        assertEquals("Integration Test Gym", cachedInfo.get().getName());
-        assertEquals("123 Test St", cachedInfo.get().getAddress());
+        GymInfo cachedInfo = gymInfoRepository.findById(savedGym.getId()).get();
+        assertEquals("Integration Test Gym", cachedInfo.getName());
+        assertEquals("123 Test St", cachedInfo.getAddress());
     }
 }

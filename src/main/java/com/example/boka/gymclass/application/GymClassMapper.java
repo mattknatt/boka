@@ -1,5 +1,6 @@
 package com.example.boka.gymclass.application;
 
+import com.example.boka.gymclass.InstructorProviderPort;
 import com.example.boka.gymclass.domain.GymClass;
 
 public final class GymClassMapper {
