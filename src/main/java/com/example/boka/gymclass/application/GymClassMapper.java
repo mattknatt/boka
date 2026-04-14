@@ -2,12 +2,18 @@ package com.example.boka.gymclass.application;
 
 import com.example.boka.gymclass.InstructorProviderPort;
 import com.example.boka.gymclass.domain.GymClass;
+import com.example.boka.gymclass.domain.ClassStatus;
 
 public final class GymClassMapper {
 
     private GymClassMapper() {}
 
-    public static GymClassResponse toResponse(GymClass gymClass, InstructorProviderPort.InstructorDetails instructor) {
+    public static GymClassResponse toResponse(
+            GymClass gymClass,
+            InstructorProviderPort.InstructorDetails instructor,
+            int availableSpots,
+            ClassStatus status
+    ) {
         if(gymClass == null) {
             return null;
         }
@@ -23,8 +29,8 @@ public final class GymClassMapper {
                 gymClass.getStartTime() != null ? gymClass.getStartTime().toString() : null,
                 gymClass.getEndTime() != null ? gymClass.getEndTime().toString() : null,
                 gymClass.getCapacity(),
-                gymClass.getAvailableSpots() != null ? gymClass.getAvailableSpots() : gymClass.getCapacity(),
-                gymClass.getStatus() != null ? gymClass.getStatus().name() : null
+                availableSpots,
+                status != null ? status.name() : null
         );
     }
 }

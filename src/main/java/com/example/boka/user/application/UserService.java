@@ -2,7 +2,7 @@ package com.example.boka.user.application;
 
 import com.example.boka.common.UserNotFoundException;
 import com.example.boka.user.domain.User;
-import com.example.boka.user.infrastructure.UserRepository;
+import com.example.boka.user.domain.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

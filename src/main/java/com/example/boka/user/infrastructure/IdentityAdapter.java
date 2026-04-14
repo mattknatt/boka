@@ -3,6 +3,7 @@ package com.example.boka.user.infrastructure;
 import com.example.boka.security.IdentityPort;
 import com.example.boka.user.domain.AuthProvider;
 import com.example.boka.user.domain.User;
+import com.example.boka.user.domain.UserRepository;
 import com.example.boka.user.domain.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

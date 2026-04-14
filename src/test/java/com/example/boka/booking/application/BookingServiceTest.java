@@ -2,7 +2,7 @@ package com.example.boka.booking.application;
 
 import com.example.boka.booking.domain.Booking;
 import com.example.boka.booking.domain.BookingStatus;
-import com.example.boka.booking.infrastructure.BookingRepository;
+import com.example.boka.booking.domain.BookingRepository;
 import com.example.boka.user.UserProviderPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

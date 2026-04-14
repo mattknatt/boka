@@ -2,7 +2,7 @@ package com.example.boka.gym.application;
 
 import com.example.boka.gym.domain.Gym;
 import com.example.boka.gym.GymUpdatedEvent;
-import com.example.boka.gym.infrastructure.GymRepository;
+import com.example.boka.gym.domain.GymRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;

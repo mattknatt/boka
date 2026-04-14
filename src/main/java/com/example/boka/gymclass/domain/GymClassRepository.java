@@ -1,7 +1,5 @@
-package com.example.boka.gymclass.infrastructure;
+package com.example.boka.gymclass.domain;
 
-import com.example.boka.gymclass.domain.ClassStatus;
-import com.example.boka.gymclass.domain.GymClass;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

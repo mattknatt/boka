@@ -1,6 +1,5 @@
-package com.example.boka.gymclass.infrastructure;
+package com.example.boka.gym.domain;
 
-import com.example.boka.gymclass.domain.GymInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

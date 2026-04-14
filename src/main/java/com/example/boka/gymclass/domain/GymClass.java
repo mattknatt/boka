@@ -1,5 +1,6 @@
 package com.example.boka.gymclass.domain;
 
+import com.example.boka.gym.domain.GymInfo;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -55,12 +56,4 @@ public class GymClass {
     private LocalDateTime updatedAt;
 
     // We removed the list of bookings to keep it decoupled.
-    // Booking count will be handled via a port or direct query in the booking module.
-
-    // For now, I'll keep a temporary simple available spots calculation if needed,
-    // but in a real hexagonal design, GymClass wouldn't know about bookings.
-    // Let's assume for this search view we might need it, or we fetch it differently.
-
-    @Transient
-    private Integer availableSpots;
 }

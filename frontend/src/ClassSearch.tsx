@@ -29,18 +29,18 @@ interface ClassSearchProps {
     isLoggedIn: boolean;
 }
 
-const ClassSearch: React.FC<ClassSearchProps> = ({ isLoggedIn }) => {
+const ClassSearch: React.FC<ClassSearchProps> = ({isLoggedIn}) => {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<GymClass[]>([]);
     const [loading, setLoading] = useState(false);
     const [bookingLoading, setBookingLoading] = useState<Record<number, boolean>>({});
     const [error, setError] = useState<string | null>(null);
     const [hasSearched, setHasSearched] = useState(false);
-    
+
     // Pagination state
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    
+
     const searchAbortControllerRef = useRef<AbortController | null>(null);
 
     const performSearch = useCallback(async (searchQuery: string, pageNum: number) => {
@@ -110,14 +110,14 @@ const ClassSearch: React.FC<ClassSearchProps> = ({ isLoggedIn }) => {
     const handleBookClass = async (classId: number) => {
         if (!isLoggedIn) return;
 
-        setBookingLoading(prev => ({ ...prev, [classId]: true }));
+        setBookingLoading(prev => ({...prev, [classId]: true}));
         setError(null);
 
         try {
             const response = await fetch('/api/bookings', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ gymClassId: classId })
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({gymClassId: classId})
             });
 
             if (response.ok) {
@@ -130,15 +130,16 @@ const ClassSearch: React.FC<ClassSearchProps> = ({ isLoggedIn }) => {
         } catch {
             setError('An error occurred while booking.');
         } finally {
-            setBookingLoading(prev => ({ ...prev, [classId]: false }));
+            setBookingLoading(prev => ({...prev, [classId]: false}));
         }
     };
 
     return (
         <div className="class-search">
-            <h2 style={{ fontSize: '1.5rem', marginBottom: '20px' }}>Find Gym Classes</h2>
-            <form onSubmit={handleSearch} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}>
-                <div style={{ textAlign: 'left' }}>
+            <h2 style={{fontSize: '1.5rem', marginBottom: '20px'}}>Find Gym Classes</h2>
+            <form onSubmit={handleSearch}
+                  style={{display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px'}}>
+                <div style={{textAlign: 'left'}}>
                     <input
                         id="class-search-input"
                         type="text"
@@ -148,11 +149,11 @@ const ClassSearch: React.FC<ClassSearchProps> = ({ isLoggedIn }) => {
                         style={{padding: '10px', width: '250px', borderRadius: '4px', border: '1px solid #ccc'}}
                     />
                 </div>
-                <button 
-                    type="submit" 
-                    disabled={loading} 
+                <button
+                    type="submit"
+                    disabled={loading}
                     style={{
-                        padding: '10px 20px', 
+                        padding: '10px 20px',
                         cursor: loading ? 'not-allowed' : 'pointer',
                         backgroundColor: '#ff1493',
                         color: 'white',
@@ -173,24 +174,29 @@ const ClassSearch: React.FC<ClassSearchProps> = ({ isLoggedIn }) => {
                 <div className="results" style={{marginTop: '25px'}}>
                     {results.length > 0 ? (
                         <>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                                <h3 style={{ margin: 0, fontSize: '1.2rem' }}>Upcoming Classes</h3>
-                                <div className="pagination-info" style={{ fontSize: '0.9rem', color: '#666' }}>
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                marginBottom: '15px'
+                            }}>
+                                <h3 style={{margin: 0, fontSize: '1.2rem'}}>Upcoming Classes</h3>
+                                <div className="pagination-info" style={{fontSize: '0.9rem', color: '#666'}}>
                                     Page {page + 1} of {totalPages}
                                 </div>
                             </div>
 
                             <ul style={{
-                                listStyle: 'none', 
-                                padding: 0, 
-                                display: 'grid', 
-                                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', 
+                                listStyle: 'none',
+                                padding: 0,
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
                                 gap: '15px'
                             }}>
                                 {results.map((item) => {
                                     const isFull = item.availableSpots <= 0 || item.status === 'FULL';
                                     const isLoading = bookingLoading[item.id];
-                                    
+
                                     return (
                                         <li key={item.id} style={{
                                             border: '1px solid #eee',
@@ -206,21 +212,37 @@ const ClassSearch: React.FC<ClassSearchProps> = ({ isLoggedIn }) => {
                                             fontSize: '0.9rem'
                                         }}>
                                             <div>
-                                                <h4 style={{marginTop: 0, marginBottom: '8px', color: '#ff1493', fontSize: '1.1rem'}}>{item.classTypeName}</h4>
-                                                <p style={{ margin: '4px 0', fontSize: '0.85rem' }}><strong>at {item.gymName || 'Local Gym'}</strong></p>
-                                                {item.gymAddress && <p style={{ margin: '4px 0', color: '#666', fontSize: '0.8rem' }}>{item.gymAddress}</p>}
-                                                <p style={{ margin: '8px 0 4px 0' }}>
-                                                    <strong>Instructor:</strong> {item.instructorFirstName ? `${item.instructorFirstName} ${item.instructorLastName || ''}` : `ID: ${item.instructorId}`}
+                                                <h4 style={{
+                                                    marginTop: 0,
+                                                    marginBottom: '8px',
+                                                    color: '#ff1493',
+                                                    fontSize: '1.1rem'
+                                                }}>{item.classTypeName}</h4>
+                                                <p style={{margin: '4px 0', fontSize: '0.85rem'}}>
+                                                    <strong>at {item.gymName || 'Local Gym'}</strong></p>
+                                                {item.gymAddress && <p style={{
+                                                    margin: '4px 0',
+                                                    color: '#666',
+                                                    fontSize: '0.8rem'
+                                                }}>{item.gymAddress}</p>}
+                                                <p style={{margin: '8px 0 4px 0'}}>
+                                                    <strong>Instructor:</strong> {
+                                                    item.instructorFirstName || item.instructorLastName
+                                                        ? [item.instructorFirstName, item.instructorLastName].filter(Boolean).join(' ')
+                                                        : 'Instructor TBD'
+                                                }
                                                 </p>
-                                                <p style={{ margin: '4px 0' }}><strong>Time:</strong> {new Date(item.startTime).toLocaleString('sv-SE', {
+                                                <p style={{margin: '4px 0'}}>
+                                                    <strong>Time:</strong> {new Date(item.startTime).toLocaleString('sv-SE', {
                                                     weekday: 'short',
                                                     day: 'numeric',
                                                     month: 'short',
                                                     hour: '2-digit',
                                                     minute: '2-digit'
                                                 })}</p>
-                                                <p style={{ margin: '4px 0' }}><strong>Spots:</strong> {item.availableSpots} / {item.capacity}</p>
-                                                
+                                                <p style={{margin: '4px 0'}}>
+                                                    <strong>Spots:</strong> {item.availableSpots} / {item.capacity}</p>
+
                                                 <div style={{
                                                     display: 'inline-block',
                                                     padding: '2px 8px',
@@ -237,7 +259,7 @@ const ClassSearch: React.FC<ClassSearchProps> = ({ isLoggedIn }) => {
                                                     {item.status}
                                                 </div>
                                             </div>
-                                            
+
                                             <button
                                                 onClick={() => handleBookClass(item.id)}
                                                 disabled={!isLoggedIn || isFull || isLoading}
@@ -263,8 +285,13 @@ const ClassSearch: React.FC<ClassSearchProps> = ({ isLoggedIn }) => {
                             </ul>
 
                             {totalPages > 1 && (
-                                <div className="pagination-controls" style={{ marginTop: '30px', display: 'flex', justifyContent: 'center', gap: '10px' }}>
-                                    <button 
+                                <div className="pagination-controls" style={{
+                                    marginTop: '30px',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    gap: '10px'
+                                }}>
+                                    <button
                                         disabled={page === 0 || loading}
                                         onClick={() => setPage(prev => prev - 1)}
                                         style={{
@@ -278,7 +305,7 @@ const ClassSearch: React.FC<ClassSearchProps> = ({ isLoggedIn }) => {
                                     >
                                         Previous
                                     </button>
-                                    <button 
+                                    <button
                                         disabled={page >= totalPages - 1 || loading}
                                         onClick={() => setPage(prev => prev + 1)}
                                         style={{

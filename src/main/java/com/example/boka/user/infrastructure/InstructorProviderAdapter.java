@@ -2,6 +2,7 @@ package com.example.boka.user.infrastructure;
 
 import com.example.boka.gymclass.InstructorProviderPort;
 import com.example.boka.user.domain.User;
+import com.example.boka.user.domain.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

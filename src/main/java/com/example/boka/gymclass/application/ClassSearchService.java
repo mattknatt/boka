@@ -5,8 +5,8 @@ import com.example.boka.gymclass.InstructorProviderPort;
 import com.example.boka.gymclass.domain.ClassType;
 import com.example.boka.gymclass.domain.ClassStatus;
 import com.example.boka.gymclass.domain.GymClass;
-import com.example.boka.gymclass.infrastructure.ClassTypeRepository;
-import com.example.boka.gymclass.infrastructure.GymClassRepository;
+import com.example.boka.gymclass.domain.ClassTypeRepository;
+import com.example.boka.gymclass.domain.GymClassRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -58,15 +58,16 @@ public class ClassSearchService {
 
         // 3. Map to Response and enrich data
         return gymClasses.map(gc -> {
-            Integer currentBookings = bookingCounts.getOrDefault(gc.getId(), 0);
-            gc.setAvailableSpots(gc.getCapacity() - currentBookings);
-
-            if (gc.getAvailableSpots() <= 0) {
-                gc.setStatus(ClassStatus.FULL);
+            int currentBookings = bookingCounts.getOrDefault(gc.getId(), 0);
+            int availableSpots = Math.max(0, gc.getCapacity() - currentBookings);
+            
+            ClassStatus derivedStatus = gc.getStatus();
+            if (derivedStatus == ClassStatus.SCHEDULED && availableSpots == 0) {
+                derivedStatus = ClassStatus.FULL;
             }
 
             InstructorProviderPort.InstructorDetails instructor = instructors.get(gc.getInstructorId());
-            return GymClassMapper.toResponse(gc, instructor);
+            return GymClassMapper.toResponse(gc, instructor, availableSpots, derivedStatus);
         });
     }
 }

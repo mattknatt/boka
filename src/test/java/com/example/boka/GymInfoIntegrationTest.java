@@ -2,8 +2,8 @@ package com.example.boka;
 
 import com.example.boka.gym.application.GymService;
 import com.example.boka.gym.domain.Gym;
-import com.example.boka.gymclass.domain.GymInfo;
-import com.example.boka.gymclass.infrastructure.GymInfoRepository;
+import com.example.boka.gym.domain.GymInfo;
+import com.example.boka.gym.domain.GymInfoRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

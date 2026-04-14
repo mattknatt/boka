@@ -1,7 +1,5 @@
-package com.example.boka.user.infrastructure;
+package com.example.boka.user.domain;
 
-import com.example.boka.user.domain.User;
-import com.example.boka.user.domain.UserRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

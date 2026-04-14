@@ -1,18 +1,18 @@
 package com.example.boka.config;
 
-import com.example.boka.booking.infrastructure.BookingRepository;
+import com.example.boka.booking.domain.BookingRepository;
 import com.example.boka.gym.application.GymService;
 import com.example.boka.gym.domain.Gym;
-import com.example.boka.gym.infrastructure.GymRepository;
+import com.example.boka.gym.domain.GymRepository;
 import com.example.boka.gymclass.domain.ClassStatus;
 import com.example.boka.gymclass.domain.ClassType;
 import com.example.boka.gymclass.domain.GymClass;
-import com.example.boka.gymclass.infrastructure.ClassTypeRepository;
-import com.example.boka.gymclass.infrastructure.GymClassRepository;
+import com.example.boka.gymclass.domain.ClassTypeRepository;
+import com.example.boka.gymclass.domain.GymClassRepository;
 import com.example.boka.user.domain.AuthProvider;
 import com.example.boka.user.domain.User;
 import com.example.boka.user.domain.UserRole;
-import com.example.boka.user.infrastructure.UserRepository;
+import com.example.boka.user.domain.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;

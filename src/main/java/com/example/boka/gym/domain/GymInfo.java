@@ -1,4 +1,4 @@
-package com.example.boka.gymclass.domain;
+package com.example.boka.gym.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
