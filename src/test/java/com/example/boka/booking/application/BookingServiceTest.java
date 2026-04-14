@@ -4,10 +4,12 @@ import com.example.boka.booking.UserBookingResponse;
 import com.example.boka.booking.domain.Booking;
 import com.example.boka.booking.domain.BookingStatus;
 import com.example.boka.booking.domain.BookingRepository;
+import com.example.boka.common.UserNotFoundException;
 import com.example.boka.gymclass.GymClassProviderPort;
 import com.example.boka.user.UserProviderPort;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -100,6 +102,10 @@ class BookingServiceTest {
         assertNotNull(booking1.getCancelledAt());
         assertNotNull(booking2.getCancelledAt());
         verify(bookingRepository, times(1)).saveAll(anyList());
+        ArgumentCaptor<List<Booking>> captor = ArgumentCaptor.forClass(List.class);
+        verify(bookingRepository).saveAll(captor.capture());
+        assertEquals(2, captor.getValue().size());
+        assertTrue(captor.getValue().containsAll(List.of(booking1, booking2)));
     }
 
     @Test
@@ -142,5 +148,12 @@ class BookingServiceTest {
         assertEquals("Yoga", results.get(0).classTypeName());
         assertEquals("Central Gym", results.get(0).gymName());
         assertEquals(now, results.get(0).startTime());
+    }
+
+    @Test
+    void createBooking_UserNotFound_ThrowsException() {
+        when(userProviderPort.findByEmail(testEmail)).thenReturn(Optional.empty());
+        assertThrows(UserNotFoundException.class,
+                () -> bookingService.createBooking(testClassId, testEmail));
     }
 }
