@@ -60,7 +60,7 @@ public class ClassSearchService {
         return gymClasses.map(gc -> {
             int currentBookings = bookingCounts.getOrDefault(gc.getId(), 0);
             int availableSpots = Math.max(0, gc.getCapacity() - currentBookings);
-            
+
             ClassStatus derivedStatus = gc.getStatus();
             if (derivedStatus == ClassStatus.SCHEDULED && availableSpots == 0) {
                 derivedStatus = ClassStatus.FULL;

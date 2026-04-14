@@ -45,16 +45,6 @@ public class IdentityAdapter implements IdentityPort {
 
     @Override
     @Transactional
-    public void updateOAuth2ProviderInfo(String email, String providerId) {
-        userRepository.findByEmail(email).ifPresent(user -> {
-            user.setAuthProvider(AuthProvider.GOOGLE);
-            user.setProviderId(providerId);
-            userRepository.save(user);
-        });
-    }
-
-    @Override
-    @Transactional
     public IdentityDetails createOrUpdateOAuth2User(String email, String firstName, String lastName, String providerId) {
         User user = userRepository.findByEmail(email).orElseGet(() -> {
             User newUser = new User();

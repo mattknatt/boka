@@ -12,8 +12,6 @@ public interface IdentityPort {
 
     IdentityDetails createLocalUser(String email, String firstName, String lastName, String passwordHash, String role);
 
-    void updateOAuth2ProviderInfo(String email, String providerId);
-
     /**
      * Atomically creates a new user or updates an existing user's OAuth2 provider info.
      */
