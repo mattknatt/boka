@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import './App.css'
 import ClassSearch from './ClassSearch'
+import GymList from './GymList'
 import LoginDropdown from './LoginDropdown'
 import RegistrationModal from './RegistrationModal'
 import MyBookings from './MyBookings'
@@ -14,10 +15,12 @@ interface UserInfo {
   role?: string;
 }
 
+type ViewState = 'landing' | 'search' | 'gyms' | 'bookings' | 'settings';
+
 function App() {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
-  const [view, setView] = useState<'search' | 'bookings' | 'settings'>('search');
+  const [view, setView] = useState<ViewState>('landing');
 
   const fetchUser = useCallback(() => {
     fetch('/api/auth/me')
@@ -44,8 +47,7 @@ function App() {
           <button 
             type="button"
             className="brand-logo" 
-            style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, font: 'inherit' }} 
-            onClick={() => setView('search')}
+            onClick={() => setView('landing')}
           >
             boka.
           </button>
@@ -57,14 +59,9 @@ function App() {
                   className="nav-link" 
                   onClick={() => setView('bookings')}
                   style={{ 
-                    cursor: 'pointer', 
                     fontWeight: view === 'bookings' ? 'bold' : 'normal',
                     color: view === 'bookings' ? '#ff1493' : '#333',
-                    marginRight: '15px',
-                    background: 'none',
-                    border: 'none',
-                    padding: 0,
-                    font: 'inherit'
+                    marginRight: '15px'
                   }}
                 >
                   My Bookings
@@ -74,14 +71,9 @@ function App() {
                   className="nav-link" 
                   onClick={() => setView('settings')}
                   style={{ 
-                    cursor: 'pointer', 
                     fontWeight: view === 'settings' ? 'bold' : 'normal',
                     color: view === 'settings' ? '#ff1493' : '#333',
-                    marginRight: '15px',
-                    background: 'none',
-                    border: 'none',
-                    padding: 0,
-                    font: 'inherit'
+                    marginRight: '15px'
                   }}
                 >
                   Settings
@@ -102,21 +94,44 @@ function App() {
 
         <main className="hero">
           <h1>
+            {view === 'landing' && 'Find your next workout.'}
             {view === 'search' && 'Find your next workout.'}
+            {view === 'gyms' && 'Explore our gyms.'}
             {view === 'bookings' && 'Your reserved classes.'}
             {view === 'settings' && 'Your account settings.'}
           </h1>
           <p>
+            {view === 'landing' && 'The easiest way to find and book your favorite gym classes.'}
             {view === 'search' && 'Boka makes it easy to discover and book gym classes at your favorite local studios.'}
+            {view === 'gyms' && 'Discover the best fitness locations in your area and see what they have to offer.'}
             {view === 'bookings' && 'Keep track of your upcoming sessions and manage your fitness schedule in one place.'}
             {view === 'settings' && 'Manage your personal information and account preferences.'}
           </p>
         </main>
 
         <section className="card">
+          {view === 'landing' && (
+            <div className="landing-choices" style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px' }}>
+              <button 
+                className="btn-primary" 
+                style={{ width: 'auto', padding: '1.5rem 3rem', fontSize: '1.2rem' }}
+                onClick={() => setView('search')}
+              >
+                Search Classes
+              </button>
+              <button 
+                className="btn-primary" 
+                style={{ width: 'auto', padding: '1.5rem 3rem', fontSize: '1.2rem', backgroundColor: '#333' }}
+                onClick={() => setView('gyms')}
+              >
+                Find Gyms
+              </button>
+            </div>
+          )}
           {view === 'search' && <ClassSearch isLoggedIn={user !== null} />}
+          {view === 'gyms' && <GymList />}
           {view === 'bookings' && <MyBookings onCancelSuccess={() => {}} />}
-          {view === 'settings' && <UserSettings onLogout={fetchUser} onBack={() => setView('search')} />}
+          {view === 'settings' && <UserSettings onLogout={fetchUser} onBack={() => setView('landing')} />}
         </section>
       </div>
 
