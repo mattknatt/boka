@@ -40,7 +40,7 @@ public class ClassSearchService {
                 .toList();
 
         Page<GymClass> gymClasses = gymClassRepository
-                .findByClassTypeIdInAndStatusAndStartTimeAfter(
+                .findByClassType_IdInAndStatusAndStartTimeAfter(
                         typeIds, ClassStatus.SCHEDULED, LocalDateTime.now(), pageable);
 
         // 1. Fetch actual booking counts via Port

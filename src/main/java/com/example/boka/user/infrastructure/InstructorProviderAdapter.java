@@ -3,6 +3,7 @@ package com.example.boka.user.infrastructure;
 import com.example.boka.gymclass.InstructorProviderPort;
 import com.example.boka.user.domain.User;
 import com.example.boka.user.domain.UserRepository;
+import com.example.boka.user.domain.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +20,7 @@ public class InstructorProviderAdapter implements InstructorProviderPort {
     @Override
     public Map<Long, InstructorDetails> getInstructorDetails(Set<Long> instructorIds) {
         return userRepository.findAllById(instructorIds).stream()
+                .filter(user -> user.getRole() == UserRole.INSTRUCTOR)
                 .collect(Collectors.toMap(
                         User::getId,
                         user -> new InstructorDetails(user.getId(), user.getFirstName(), user.getLastName())

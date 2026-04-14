@@ -6,6 +6,7 @@ import com.example.boka.user.domain.User;
 import com.example.boka.user.domain.UserRepository;
 import com.example.boka.user.domain.UserRole;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,20 +47,27 @@ public class IdentityAdapter implements IdentityPort {
     @Override
     @Transactional
     public IdentityDetails createOrUpdateOAuth2User(String email, String firstName, String lastName, String providerId) {
-        User user = userRepository.findByEmail(email).orElseGet(() -> {
-            User newUser = new User();
-            newUser.setEmail(email);
-            newUser.setFirstName(firstName != null ? firstName : "");
-            newUser.setLastName(lastName != null ? lastName : "");
-            newUser.setRole(UserRole.MEMBER);
-            newUser.setIsActive(true);
-            return newUser;
-        });
+        try {
+            User user = userRepository.findByEmail(email).orElseGet(() -> {
+                User newUser = new User();
+                newUser.setEmail(email);
+                newUser.setFirstName(firstName != null ? firstName : "");
+                newUser.setLastName(lastName != null ? lastName : "");
+                newUser.setRole(UserRole.MEMBER);
+                newUser.setIsActive(true);
+                return newUser;
+            });
 
-        user.setAuthProvider(AuthProvider.GOOGLE);
-        user.setProviderId(providerId);
+            user.setAuthProvider(AuthProvider.GOOGLE);
+            user.setProviderId(providerId);
 
-        return toDetails(userRepository.save(user));
+            return toDetails(userRepository.save(user));
+        } catch (DataIntegrityViolationException e) {
+            User existing = userRepository.findByEmail(email).orElseThrow(() -> e);
+            existing.setProviderId(providerId);
+            existing.setAuthProvider(AuthProvider.GOOGLE);
+            return toDetails(userRepository.save(existing));
+        }
     }
 
     private IdentityDetails toDetails(User user) {

@@ -16,6 +16,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByGymClassId(Long gymClassId);
     Optional<Booking> findByUserIdAndGymClassIdAndStatus(Long userId, Long gymClassId, BookingStatus status);
 
-    @Query("SELECT b.gymClassId, CAST(COUNT(b) AS int) FROM Booking b WHERE b.status = :status AND b.gymClassId IN :gymClassIds GROUP BY b.gymClassId")
+    @Query("SELECT b.gymClassId, COUNT(b) FROM Booking b WHERE b.status = :status AND b.gymClassId IN :gymClassIds GROUP BY b.gymClassId")
     List<Object[]> findCountsByGymClassIdsAndStatus(@Param("gymClassIds") Set<Long> gymClassIds, @Param("status") BookingStatus status);
 }

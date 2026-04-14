@@ -30,7 +30,7 @@ public class BookingProviderAdapter implements BookingProviderPort {
         Map<Long, Integer> countsMap = results.stream()
                 .collect(Collectors.toMap(
                         row -> (Long) row[0],
-                        row -> (Integer) row[1]
+                        row -> ((Number) row[1]).intValue()
                 ));
 
         // Ensure all requested IDs are in the map, defaulting to 0

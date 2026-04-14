@@ -11,7 +11,7 @@ import java.util.List;
 @Repository
 public interface GymClassRepository extends JpaRepository<GymClass, Long> {
 
-    Page<GymClass> findByClassTypeIdInAndStatusAndStartTimeAfter(
+    Page<GymClass> findByClassType_IdInAndStatusAndStartTimeAfter(
             List<Long> classTypeIds, ClassStatus status, LocalDateTime time, Pageable pageable
     );
 }

@@ -1,4 +1,4 @@
-package com.example.boka.gymclass.application;
+package com.example.boka.gym.application;
 
 import com.example.boka.gym.GymUpdatedEvent;
 import com.example.boka.gym.domain.GymInfo;
@@ -6,6 +6,7 @@ import com.example.boka.gym.domain.GymInfoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,7 @@ public class GymEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Async
     public void handleGymUpdated(GymUpdatedEvent event) {
         if (event.name() == null || event.address() == null) {
             log.error("Skipping gym info cache update for gym ID {} due to missing required fields", event.id());
