@@ -16,7 +16,7 @@
 .app-container {
     min-height: 100vh;
     width: 100%;
-    background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)),
+    background-image: linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.75)),
     url('./assets/background-gym.png');
     background-size: cover;
     background-position: center;
