@@ -1,4 +1,0 @@
--- Database initialization script
--- Tables are automatically created by Hibernate (ddl-auto=update).
--- This file is left intentionally empty to allow DataSeeder.java to handle 
--- dynamic data seeding.
