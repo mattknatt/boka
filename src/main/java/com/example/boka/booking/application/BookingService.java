@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -43,15 +44,18 @@ public class BookingService {
                 .map(b -> {
                     GymClassProviderPort.GymClassDetails details = classDetails.get(b.getGymClassId());
                     return new UserBookingResponse(
-                        b.getId(),
-                        b.getGymClassId(),
-                        details != null ? details.classTypeName() : "Unknown",
-                        details != null ? details.startTime() : null,
-                        details != null ? details.gymName() : "Local Gym",
-                        b.getStatus().name()
+                            b.getId(),
+                            b.getGymClassId(),
+                            details != null ? details.classTypeName() : "Unknown",
+                            details != null ? details.startTime() : null,
+                            details != null ? details.gymName() : "Local Gym",
+                            b.getStatus().name()
                     );
                 })
-                .sorted((a, b) -> b.startTime().compareTo(a.startTime())) // Newest first
+                .sorted(Comparator.comparing(
+                        UserBookingResponse::startTime,
+                        Comparator.nullsLast(Comparator.reverseOrder())
+                ))
                 .toList();
     }
 
@@ -62,7 +66,9 @@ public class BookingService {
 
         // Check if already booked
         bookingRepository.findByUserIdAndGymClassIdAndStatus(user.id(), gymClassId, BookingStatus.CONFIRMED)
-                .ifPresent(b -> { throw new IllegalStateException("Already booked this class"); });
+                .ifPresent(b -> {
+                    throw new IllegalStateException("Already booked this class");
+                });
 
         Booking booking = new Booking();
         booking.setUserId(user.id());

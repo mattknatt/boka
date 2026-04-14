@@ -89,7 +89,14 @@ const ClassSearch: React.FC<ClassSearchProps> = ({isLoggedIn}) => {
         if (hasSearched) {
             performSearch(query, page);
         }
-    }, [page, performSearch]);
+    }, [page, performSearch, hasSearched, query]);
+
+    // Refresh results when login status changes to update userHasBooked flags
+    useEffect(() => {
+        if (hasSearched) {
+            performSearch(query, page);
+        }
+    }, [isLoggedIn, performSearch, hasSearched, query, page]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();

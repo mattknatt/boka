@@ -41,40 +41,51 @@ function App() {
     <div className="app-container">
       <div className="content-wrapper">
         <header className="header">
-          <div 
+          <button 
+            type="button"
             className="brand-logo" 
-            style={{ cursor: 'pointer' }} 
+            style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, font: 'inherit' }} 
             onClick={() => setView('search')}
           >
             boka.
-          </div>
+          </button>
           <div className="user-nav">
             {user ? (
               <div className="user-info">
-                <span 
+                <button 
+                  type="button"
                   className="nav-link" 
                   onClick={() => setView('bookings')}
                   style={{ 
                     cursor: 'pointer', 
                     fontWeight: view === 'bookings' ? 'bold' : 'normal',
                     color: view === 'bookings' ? '#ff1493' : '#333',
-                    marginRight: '15px'
+                    marginRight: '15px',
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    font: 'inherit'
                   }}
                 >
                   My Bookings
-                </span>
-                <span 
+                </button>
+                <button 
+                  type="button"
                   className="nav-link" 
                   onClick={() => setView('settings')}
                   style={{ 
                     cursor: 'pointer', 
                     fontWeight: view === 'settings' ? 'bold' : 'normal',
                     color: view === 'settings' ? '#ff1493' : '#333',
-                    marginRight: '15px'
+                    marginRight: '15px',
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    font: 'inherit'
                   }}
                 >
                   Settings
-                </span>
+                </button>
                 <span className="user-name">Hey, {user.name}</span>
                 <button className="login-button logout" onClick={handleLogout}>Logout</button>
               </div>
