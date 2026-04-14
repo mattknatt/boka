@@ -1,10 +1,22 @@
 package com.example.boka.config;
 
-import com.example.boka.entity.*;
-import com.example.boka.repository.*;
+import com.example.boka.booking.domain.BookingRepository;
+import com.example.boka.gym.application.GymService;
+import com.example.boka.gym.domain.Gym;
+import com.example.boka.gym.domain.GymRepository;
+import com.example.boka.gymclass.domain.ClassStatus;
+import com.example.boka.gymclass.domain.ClassType;
+import com.example.boka.gymclass.domain.GymClass;
+import com.example.boka.gymclass.domain.ClassTypeRepository;
+import com.example.boka.gymclass.domain.GymClassRepository;
+import com.example.boka.user.domain.AuthProvider;
+import com.example.boka.user.domain.User;
+import com.example.boka.user.domain.UserRole;
+import com.example.boka.user.domain.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +29,7 @@ import java.util.Random;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@Profile("!test")
 public class DataSeeder implements CommandLineRunner {
 
     private final UserRepository userRepository;
@@ -24,6 +37,7 @@ public class DataSeeder implements CommandLineRunner {
     private final GymClassRepository gymClassRepository;
     private final BookingRepository bookingRepository;
     private final GymRepository gymRepository;
+    private final GymService gymService; // Use service to trigger events
     private final PasswordEncoder passwordEncoder;
     private final Random random = new Random();
 
@@ -31,22 +45,20 @@ public class DataSeeder implements CommandLineRunner {
     @Transactional
     public void run(String... args) {
         if (userRepository.count() > 0 || classTypeRepository.count() > 0 || gymRepository.count() > 0) {
-            log.info("Database already contains data (users, class types, or gyms) — skipping seeding.");
+            log.info("Database already contains data — skipping seeding.");
             return;
         }
 
         log.info("Seeding database with dummy data...");
 
-        // ── Gyms (Gothenburg Area) ──────────────────────────────
-        List<Gym> gyms = List.of(
-            createGym("Boka Central", "Östra Hamngatan 16, 411 09 Göteborg", 57.7089, 11.9746),
-            createGym("Boka Majorna", "Karl Johansgatan 12, 414 59 Göteborg", 57.6931, 11.9281),
-            createGym("Boka Linné", "Linnégatan 5, 413 04 Göteborg", 57.6951, 11.9511),
-            createGym("Boka Hisingen", "Kvilletorget 2, 417 04 Göteborg", 57.7211, 11.9311),
-            createGym("Boka Johanneberg", "Gibraltargatan 10, 412 58 Göteborg", 57.6891, 11.9811),
-            createGym("Boka Olskroken", "Redbergsplatsen 1, 416 67 Göteborg", 57.7111, 12.0011)
-        );
-        gymRepository.saveAll(gyms);
+        // ── Gyms ────────────────────────────────────────────────
+        List<Gym> gyms = new ArrayList<>();
+        gyms.add(gymService.saveGym(createGymEntity("Boka Central", "Östra Hamngatan 16, 411 09 Göteborg", 57.7089, 11.9746)));
+        gyms.add(gymService.saveGym(createGymEntity("Boka Majorna", "Karl Johansgatan 12, 414 59 Göteborg", 57.6931, 11.9281)));
+        gyms.add(gymService.saveGym(createGymEntity("Boka Linné", "Linnégatan 5, 413 04 Göteborg", 57.6951, 11.9511)));
+        gyms.add(gymService.saveGym(createGymEntity("Boka Hisingen", "Kvilletorget 2, 417 04 Göteborg", 57.7211, 11.9311)));
+        gyms.add(gymService.saveGym(createGymEntity("Boka Johanneberg", "Gibraltargatan 10, 412 58 Göteborg", 57.6891, 11.9811)));
+        gyms.add(gymService.saveGym(createGymEntity("Boka Olskroken", "Redbergsplatsen 1, 416 67 Göteborg", 57.7111, 12.0011)));
 
         // ── Users ────────────────────────────────────────────────
         User admin = createUser("admin@boka.se", "Admin", "Adminsson", UserRole.ADMIN, "070-111-1111");
@@ -66,62 +78,34 @@ public class DataSeeder implements CommandLineRunner {
         userRepository.saveAll(members);
 
         // ── Class Types ──────────────────────────────────────────
-        ClassType yoga = createClassType("Yoga", "A calming practice focused on flexibility and mindfulness.", 20, 60);
-        ClassType hiit = createClassType("HIIT", "High-intensity interval training for maximum calorie burn.", 25, 45);
-        ClassType strength = createClassType("Strength", "Progressive resistance training to build muscle.", 15, 60);
-        ClassType spinning = createClassType("Spinning", "Intense indoor cycling workout.", 30, 45);
-        ClassType pilates = createClassType("Pilates", "Core strength, flexibility, and body awareness.", 18, 50);
-        ClassType boxing = createClassType("Boxing", "High-energy boxing techniques and cardio.", 20, 60);
-        ClassType zumba = createClassType("Zumba", "Dance-fitness party with international music.", 35, 55);
-        ClassType crossfit = createClassType("CrossFit", "Varied functional fitness at high intensity.", 16, 60);
+        ClassType yoga = createClassType("Yoga", "A calming practice focused on flexibility.", 20, 60);
+        ClassType hiit = createClassType("HIIT", "High-intensity interval training.", 25, 45);
+        ClassType strength = createClassType("Strength", "Progressive resistance training.", 15, 60);
+        ClassType spinning = createClassType("Spinning", "Intense indoor cycling.", 30, 45);
 
-        List<ClassType> classTypes = List.of(yoga, hiit, strength, spinning, pilates, boxing, zumba, crossfit);
+        List<ClassType> classTypes = List.of(yoga, hiit, strength, spinning);
         classTypeRepository.saveAll(classTypes);
 
-        // ── Gym Classes (Rolling 14-day schedule) ────────────────
-        List<User> instructors = List.of(instructor1, instructor2, instructor3);
+        // ── Gym Classes ──────────────────────────────────────────
         List<GymClass> allGymClasses = new ArrayList<>();
-
         LocalDateTime startBase = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
 
         for (int day = 0; day < 14; day++) {
             LocalDateTime dayDate = startBase.plusDays(day);
-
-            // Generate 5 random classes per day at random gyms
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < 3; i++) {
                 Gym randomGym = gyms.get(random.nextInt(gyms.size()));
                 ClassType randomType = classTypes.get(random.nextInt(classTypes.size()));
-                User randomInstructor = instructors.get(random.nextInt(instructors.size()));
-                int hour = 7 + random.nextInt(14); // 7:00 to 21:00
+                User randomInstructor = instructor1; // Simplified
 
-                allGymClasses.add(createGymClass(randomType, randomInstructor, randomGym, dayDate.withHour(hour), 60, randomType.getDefaultCapacity()));
+                allGymClasses.add(createGymClass(randomType, randomInstructor.getId(), randomGym.getId(), dayDate.withHour(8 + i * 4), 60, randomType.getDefaultCapacity()));
             }
         }
-
         gymClassRepository.saveAll(allGymClasses);
 
-        // ── Random Bookings ─────────────────────────────────────
-        List<Booking> seedBookings = new ArrayList<>();
-        for (int i = 0; i < 50; i++) {
-            User randomMember = members.get(random.nextInt(members.size()));
-            GymClass randomClass = allGymClasses.get(random.nextInt(allGymClasses.size()));
-
-            boolean alreadyBooked = seedBookings.stream()
-                .anyMatch(b -> b.getUser().getEmail().equals(randomMember.getEmail()) &&
-                               b.getGymClass().getId().equals(randomClass.getId()));
-
-            if (!alreadyBooked && !randomClass.isFull()) {
-                seedBookings.add(createBooking(randomMember, randomClass, BookingStatus.CONFIRMED));
-            }
-        }
-        bookingRepository.saveAll(seedBookings);
-
-        log.info("Database seeding complete! Created {} gyms, {} users, {} class types, {} gym classes, {} bookings.",
-                gymRepository.count(), userRepository.count(), classTypeRepository.count(),
-                gymClassRepository.count(), bookingRepository.count());
+        log.info("Database seeding complete!");
     }
 
-    private Gym createGym(String name, String address, Double lat, Double lon) {
+    private Gym createGymEntity(String name, String address, Double lat, Double lon) {
         Gym gym = new Gym();
         gym.setName(name);
         gym.setAddress(address);
@@ -139,6 +123,7 @@ public class DataSeeder implements CommandLineRunner {
         user.setPhoneNumber(phone);
         user.setRole(role);
         user.setIsActive(true);
+        user.setAuthProvider(AuthProvider.LOCAL);
         return user;
     }
 
@@ -152,26 +137,15 @@ public class DataSeeder implements CommandLineRunner {
         return ct;
     }
 
-    private GymClass createGymClass(ClassType type, User instructor, Gym gym, LocalDateTime start, int durationMinutes, int capacity) {
+    private GymClass createGymClass(ClassType type, Long instructorId, Long gymId, LocalDateTime start, int durationMinutes, int capacity) {
         GymClass gc = new GymClass();
         gc.setClassType(type);
-        gc.setInstructor(instructor);
-        gc.setGym(gym);
+        gc.setInstructorId(instructorId);
+        gc.setGymId(gymId);
         gc.setStartTime(start);
         gc.setEndTime(start.plusMinutes(durationMinutes));
         gc.setCapacity(capacity);
         gc.setStatus(ClassStatus.SCHEDULED);
         return gc;
-    }
-
-    private Booking createBooking(User user, GymClass gymClass, BookingStatus status) {
-        Booking booking = new Booking();
-        booking.setUser(user);
-        booking.setGymClass(gymClass);
-        booking.setStatus(status);
-        if (status == BookingStatus.CANCELLED) {
-            booking.setCancelledAt(LocalDateTime.now());
-        }
-        return booking;
     }
 }
