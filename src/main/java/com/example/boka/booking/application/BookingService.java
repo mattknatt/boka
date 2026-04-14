@@ -65,10 +65,10 @@ public class BookingService {
                 .orElseThrow(() -> new UserNotFoundException(userEmail));
 
         // Check if already booked
-        bookingRepository.findByUserIdAndGymClassIdAndStatus(user.id(), gymClassId, BookingStatus.CONFIRMED)
-                .ifPresent(b -> {
-                    throw new IllegalStateException("Already booked this class");
-                });
+        List<Booking> existingBookings = bookingRepository.findByUserIdAndGymClassIdAndStatus(user.id(), gymClassId, BookingStatus.CONFIRMED);
+        if (!existingBookings.isEmpty()) {
+            throw new IllegalStateException("Already booked this class");
+        }
 
         Booking booking = new Booking();
         booking.setUserId(user.id());
@@ -88,11 +88,18 @@ public class BookingService {
         UserProviderPort.UserDetails user = userProviderPort.findByEmail(userEmail)
                 .orElseThrow(() -> new UserNotFoundException(userEmail));
 
-        Booking booking = bookingRepository.findByUserIdAndGymClassIdAndStatus(user.id(), gymClassId, BookingStatus.CONFIRMED)
-                .orElseThrow(() -> new IllegalStateException("No confirmed booking found for this class"));
+        List<Booking> confirmedBookings = bookingRepository.findByUserIdAndGymClassIdAndStatus(user.id(), gymClassId, BookingStatus.CONFIRMED);
 
-        booking.setStatus(BookingStatus.CANCELLED);
-        booking.setCancelledAt(LocalDateTime.now());
-        bookingRepository.save(booking);
+        if (confirmedBookings.isEmpty()) {
+            throw new IllegalStateException("No confirmed booking found for this class");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        for (Booking booking : confirmedBookings) {
+            booking.setStatus(BookingStatus.CANCELLED);
+            booking.setCancelledAt(now);
+        }
+
+        bookingRepository.saveAll(confirmedBookings);
     }
 }
