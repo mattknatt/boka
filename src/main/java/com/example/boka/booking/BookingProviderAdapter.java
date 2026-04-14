@@ -40,4 +40,12 @@ public class BookingProviderAdapter implements BookingProviderPort {
                         id -> countsMap.getOrDefault(id, 0)
                 ));
     }
+
+    @Override
+    public Set<Long> getBookedClassIds(Long userId, Set<Long> gymClassIds) {
+        if (userId == null || gymClassIds == null || gymClassIds.isEmpty()) {
+            return Set.of();
+        }
+        return bookingRepository.findBookedGymClassIds(userId, gymClassIds, BookingStatus.CONFIRMED);
+    }
 }

@@ -48,6 +48,24 @@ public class BookingController {
         }
     }
 
+    @DeleteMapping("/{gymClassId}")
+    public ResponseEntity<?> deleteBooking(
+            @PathVariable Long gymClassId,
+            Authentication authentication
+    ) {
+        String email = getEmailFromAuthentication(authentication);
+        if (email == null) {
+            return ResponseEntity.status(401).body(Map.of("message", "User must be logged in to cancel a booking"));
+        }
+
+        try {
+            bookingService.cancelBooking(gymClassId, email);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
     private String getEmailFromAuthentication(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) return null;
         if (authentication.getPrincipal() instanceof OAuth2User oAuth2User) {

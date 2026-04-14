@@ -10,6 +10,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 public class BookingService {
@@ -37,5 +39,18 @@ public class BookingService {
         } catch (DataIntegrityViolationException e) {
             throw new IllegalStateException("Already booked this class");
         }
+    }
+
+    @Transactional
+    public void cancelBooking(Long gymClassId, String userEmail) {
+        UserProviderPort.UserDetails user = userProviderPort.findByEmail(userEmail)
+                .orElseThrow(() -> new UserNotFoundException(userEmail));
+
+        Booking booking = bookingRepository.findByUserIdAndGymClassIdAndStatus(user.id(), gymClassId, BookingStatus.CONFIRMED)
+                .orElseThrow(() -> new IllegalStateException("No confirmed booking found for this class"));
+
+        booking.setStatus(BookingStatus.CANCELLED);
+        booking.setCancelledAt(LocalDateTime.now());
+        bookingRepository.save(booking);
     }
 }

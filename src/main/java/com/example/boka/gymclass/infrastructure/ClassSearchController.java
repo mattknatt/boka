@@ -10,6 +10,10 @@ import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+
 @RestController
 @RequestMapping("/api/classes")
 @RequiredArgsConstructor
@@ -20,11 +24,23 @@ public class ClassSearchController {
     @GetMapping("/search")
     public ResponseEntity<Page<GymClassResponse>> searchClasses(
             @RequestParam String query,
-            @PageableDefault(size = 6) Pageable pageable
+            @PageableDefault(size = 6) Pageable pageable,
+            Authentication authentication
     ) {
-        Page<GymClassResponse> results = classSearchService.searchClasses(query, pageable);
+        String email = getEmailFromAuthentication(authentication);
+        Page<GymClassResponse> results = classSearchService.searchClasses(query, email, pageable);
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.noCache().mustRevalidate())
                 .body(results);
+    }
+
+    private String getEmailFromAuthentication(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) return null;
+        if (authentication.getPrincipal() instanceof OAuth2User oAuth2User) {
+            return oAuth2User.getAttribute("email");
+        } else if (authentication.getPrincipal() instanceof UserDetails userDetails) {
+            return userDetails.getUsername();
+        }
+        return null;
     }
 }
