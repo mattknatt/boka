@@ -22,6 +22,16 @@ public class BookingController {
 
     private final BookingService bookingService;
 
+    @GetMapping("/my")
+    public ResponseEntity<?> getUserBookings(Authentication authentication) {
+        String email = getEmailFromAuthentication(authentication);
+        if (email == null) {
+            return ResponseEntity.status(401).body(Map.of("message", "User must be logged in to view bookings"));
+        }
+
+        return ResponseEntity.ok(bookingService.getUserBookings(email));
+    }
+
     @PostMapping
     public ResponseEntity<?> createBooking(
             @Valid @RequestBody BookingRequest request,
