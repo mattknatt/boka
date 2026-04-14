@@ -44,7 +44,6 @@ function App() {
           <button 
             type="button"
             className="brand-logo" 
-            style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, font: 'inherit' }} 
             onClick={() => setView('search')}
           >
             boka.
@@ -57,14 +56,9 @@ function App() {
                   className="nav-link" 
                   onClick={() => setView('bookings')}
                   style={{ 
-                    cursor: 'pointer', 
                     fontWeight: view === 'bookings' ? 'bold' : 'normal',
                     color: view === 'bookings' ? '#ff1493' : '#333',
-                    marginRight: '15px',
-                    background: 'none',
-                    border: 'none',
-                    padding: 0,
-                    font: 'inherit'
+                    marginRight: '15px'
                   }}
                 >
                   My Bookings
@@ -74,14 +68,9 @@ function App() {
                   className="nav-link" 
                   onClick={() => setView('settings')}
                   style={{ 
-                    cursor: 'pointer', 
                     fontWeight: view === 'settings' ? 'bold' : 'normal',
                     color: view === 'settings' ? '#ff1493' : '#333',
-                    marginRight: '15px',
-                    background: 'none',
-                    border: 'none',
-                    padding: 0,
-                    font: 'inherit'
+                    marginRight: '15px'
                   }}
                 >
                   Settings
