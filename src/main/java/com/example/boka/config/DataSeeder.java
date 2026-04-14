@@ -99,12 +99,14 @@ public class DataSeeder implements CommandLineRunner {
         List<GymClass> allGymClasses = new ArrayList<>();
         LocalDateTime startBase = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
 
+        List<User> instructors = List.of(instructor1, instructor2, instructor3);
+
         for (int day = 0; day < 14; day++) {
             LocalDateTime dayDate = startBase.plusDays(day);
             for (int i = 0; i < 3; i++) {
                 Gym randomGym = gyms.get(random.nextInt(gyms.size()));
                 ClassType randomType = classTypes.get(random.nextInt(classTypes.size()));
-                User randomInstructor = instructor1;
+                User randomInstructor = instructors.get(random.nextInt(instructors.size()));
 
                 allGymClasses.add(createGymClass(randomType, randomInstructor.getId(), randomGym.getId(), dayDate.withHour(8 + i * 4), 60, randomType.getDefaultCapacity()));
             }
