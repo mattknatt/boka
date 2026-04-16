@@ -10,6 +10,7 @@ import com.example.boka.gymclass.GymClassProviderPort;
 import com.example.boka.user.UserProviderPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,30 +66,32 @@ public class BookingService {
         UserProviderPort.UserDetails user = userProviderPort.findByEmail(userEmail)
                 .orElseThrow(() -> new UserNotFoundException(userEmail));
 
-        // Acquire a pessimistic write lock on the gym class row to prevent concurrent overbooking
-        int capacity = gymClassProviderPort.lockAndGetCapacity(gymClassId)
-                .orElseThrow(() -> new ResourceNotFoundException("GymClass", "id", gymClassId));
-
-        // Check if already booked
-        List<Booking> existingBookings = bookingRepository.findByUserIdAndGymClassIdAndStatus(user.id(), gymClassId, BookingStatus.CONFIRMED);
-        if (!existingBookings.isEmpty()) {
-            throw new IllegalStateException("Already booked this class");
-        }
-
-        // Enforce capacity — count is taken after the lock, so it is accurate
-        long confirmedCount = bookingRepository.countByGymClassIdAndStatus(gymClassId, BookingStatus.CONFIRMED);
-        if (confirmedCount >= capacity) {
-            throw new IllegalStateException("Class is full");
-        }
-
-        Booking booking = new Booking();
-        booking.setUserId(user.id());
-        booking.setGymClassId(gymClassId);
-        booking.setStatus(BookingStatus.CONFIRMED);
-
         try {
+            // Acquire a pessimistic write lock on the gym class row to prevent concurrent overbooking
+            int capacity = gymClassProviderPort.lockAndGetCapacity(gymClassId)
+                    .orElseThrow(() -> new ResourceNotFoundException("GymClass", "id", gymClassId));
+
+            // Check if already booked
+            List<Booking> existingBookings = bookingRepository.findByUserIdAndGymClassIdAndStatus(user.id(), gymClassId, BookingStatus.CONFIRMED);
+            if (!existingBookings.isEmpty()) {
+                throw new IllegalStateException("Already booked this class");
+            }
+
+            // Enforce capacity — count is taken after the lock, so it is accurate
+            long confirmedCount = bookingRepository.countByGymClassIdAndStatus(gymClassId, BookingStatus.CONFIRMED);
+            if (confirmedCount >= capacity) {
+                throw new IllegalStateException("Class is full");
+            }
+
+            Booking booking = new Booking();
+            booking.setUserId(user.id());
+            booking.setGymClassId(gymClassId);
+            booking.setStatus(BookingStatus.CONFIRMED);
+
             Booking saved = bookingRepository.save(booking);
             return new BookingResponse(saved.getId(), gymClassId, user.email(), "CONFIRMED");
+        } catch (PessimisticLockingFailureException e) {
+            throw new IllegalStateException("Class is temporarily unavailable, please try again");
         } catch (DataIntegrityViolationException e) {
             throw new IllegalStateException("Already booked this class");
         }
