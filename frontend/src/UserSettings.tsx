@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface UserResponse {
     id: number;
@@ -13,10 +14,10 @@ interface UserResponse {
 
 interface UserSettingsProps {
     onLogout: () => void;
-    onBack: () => void;
 }
 
-const UserSettings: React.FC<UserSettingsProps> = ({ onLogout, onBack }) => {
+const UserSettings: React.FC<UserSettingsProps> = ({ onLogout }) => {
+    const navigate = useNavigate();
     const [user, setUser] = useState<UserResponse | null>(null);
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -121,8 +122,8 @@ const UserSettings: React.FC<UserSettingsProps> = ({ onLogout, onBack }) => {
 
     return (
         <div className="user-settings" style={{ maxWidth: '500px', margin: '0 auto', textAlign: 'left' }}>
-            <button onClick={onBack} style={{ marginBottom: '20px', cursor: 'pointer', background: 'none', border: 'none', color: '#ff1493', fontWeight: 'bold' }}>
-                &larr; Back to classes
+            <button onClick={() => navigate(-1)} style={{ marginBottom: '20px', cursor: 'pointer', background: 'none', border: 'none', color: '#ff1493', fontWeight: 'bold' }}>
+                &larr; Back
             </button>
             
             <h2 style={{ marginBottom: '20px' }}>User Settings</h2>
