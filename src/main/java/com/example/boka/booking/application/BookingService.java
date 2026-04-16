@@ -4,6 +4,7 @@ import com.example.boka.booking.UserBookingResponse;
 import com.example.boka.booking.domain.Booking;
 import com.example.boka.booking.domain.BookingStatus;
 import com.example.boka.booking.domain.BookingRepository;
+import com.example.boka.common.ResourceNotFoundException;
 import com.example.boka.common.UserNotFoundException;
 import com.example.boka.gymclass.GymClassProviderPort;
 import com.example.boka.user.UserProviderPort;
@@ -64,10 +65,20 @@ public class BookingService {
         UserProviderPort.UserDetails user = userProviderPort.findByEmail(userEmail)
                 .orElseThrow(() -> new UserNotFoundException(userEmail));
 
+        // Acquire a pessimistic write lock on the gym class row to prevent concurrent overbooking
+        int capacity = gymClassProviderPort.lockAndGetCapacity(gymClassId)
+                .orElseThrow(() -> new ResourceNotFoundException("GymClass", "id", gymClassId));
+
         // Check if already booked
         List<Booking> existingBookings = bookingRepository.findByUserIdAndGymClassIdAndStatus(user.id(), gymClassId, BookingStatus.CONFIRMED);
         if (!existingBookings.isEmpty()) {
             throw new IllegalStateException("Already booked this class");
+        }
+
+        // Enforce capacity — count is taken after the lock, so it is accurate
+        long confirmedCount = bookingRepository.countByGymClassIdAndStatus(gymClassId, BookingStatus.CONFIRMED);
+        if (confirmedCount >= capacity) {
+            throw new IllegalStateException("Class is full");
         }
 
         Booking booking = new Booking();
