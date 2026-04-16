@@ -45,8 +45,10 @@ class BookingServiceTest {
         // Arrange
         UserProviderPort.UserDetails userDetails = new UserProviderPort.UserDetails(testUserId, testEmail);
         when(userProviderPort.findByEmail(testEmail)).thenReturn(Optional.of(userDetails));
+        when(gymClassProviderPort.lockAndGetCapacity(testClassId)).thenReturn(Optional.of(10));
         when(bookingRepository.findByUserIdAndGymClassIdAndStatus(testUserId, testClassId, BookingStatus.CONFIRMED))
                 .thenReturn(Collections.emptyList());
+        when(bookingRepository.countByGymClassIdAndStatus(testClassId, BookingStatus.CONFIRMED)).thenReturn(5L);
 
         Booking savedBooking = new Booking();
         savedBooking.setId(500L);
@@ -67,6 +69,7 @@ class BookingServiceTest {
         // Arrange
         UserProviderPort.UserDetails userDetails = new UserProviderPort.UserDetails(testUserId, testEmail);
         when(userProviderPort.findByEmail(testEmail)).thenReturn(Optional.of(userDetails));
+        when(gymClassProviderPort.lockAndGetCapacity(testClassId)).thenReturn(Optional.of(10));
         when(bookingRepository.findByUserIdAndGymClassIdAndStatus(testUserId, testClassId, BookingStatus.CONFIRMED))
                 .thenReturn(List.of(new Booking()));
 

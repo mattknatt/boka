@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -15,6 +16,12 @@ import java.util.stream.Collectors;
 public class GymClassProviderAdapter implements GymClassProviderPort {
 
     private final GymClassRepository gymClassRepository;
+
+    @Override
+    public Optional<Integer> lockAndGetCapacity(Long gymClassId) {
+        return gymClassRepository.findWithLockById(gymClassId)
+                .map(GymClass::getCapacity);
+    }
 
     @Override
     public Map<Long, GymClassDetails> getGymClassDetails(List<Long> gymClassIds) {
