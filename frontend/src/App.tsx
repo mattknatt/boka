@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import './App.css'
 import ClassSearch from './ClassSearch'
 import GymList from './GymList'
@@ -15,21 +16,28 @@ interface UserInfo {
   role?: string;
 }
 
-type ViewState = 'landing' | 'search' | 'gyms' | 'bookings' | 'settings';
+const HEADINGS: Record<string, { title: string; subtitle: string }> = {
+  '/':         { title: 'Find your next workout.',    subtitle: 'The easiest way to find and book your favorite gym classes.' },
+  '/search':   { title: 'Find your next workout.',    subtitle: 'Boka makes it easy to discover and book gym classes at your favorite local studios.' },
+  '/gyms':     { title: 'Explore our gyms.',          subtitle: 'Discover the best fitness locations in your area and see what they have to offer.' },
+  '/bookings': { title: 'Your reserved classes.',     subtitle: 'Keep track of your upcoming sessions and manage your fitness schedule in one place.' },
+  '/settings': { title: 'Your account settings.',    subtitle: 'Manage your personal information and account preferences.' },
+};
 
 function App() {
   const [user, setUser] = useState<UserInfo | null>(null);
+  const [userLoading, setUserLoading] = useState(true);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
-  const [view, setView] = useState<ViewState>('landing');
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   const fetchUser = useCallback(() => {
+    setUserLoading(true);
     fetch('/api/auth/me')
-      .then(res => {
-        if (res.status === 200) return res.json();
-        return null;
-      })
+      .then(res => (res.status === 200 ? res.json() : null))
       .then(data => setUser(data))
-      .catch(() => setUser(null));
+      .catch(() => setUser(null))
+      .finally(() => setUserLoading(false));
   }, []);
 
   useEffect(() => {
@@ -40,39 +48,43 @@ function App() {
     window.location.href = '/logout';
   };
 
+  const { title, subtitle } = HEADINGS[pathname] ?? HEADINGS['/'];
+
+  // Protect authenticated routes: wait for auth check before deciding
+  const protectedElement = (element: React.ReactNode) => {
+    if (userLoading) return null;
+    return user ? element : <Navigate to="/" replace />;
+  };
+
   return (
     <div className="app-container">
       <div className="content-wrapper">
         <header className="header">
-          <button 
-            type="button"
-            className="brand-logo" 
-            onClick={() => setView('landing')}
-          >
+          <button type="button" className="brand-logo" onClick={() => navigate('/')}>
             boka.
           </button>
           <div className="user-nav">
             {user ? (
               <div className="user-info">
-                <button 
+                <button
                   type="button"
-                  className="nav-link" 
-                  onClick={() => setView('bookings')}
-                  style={{ 
-                    fontWeight: view === 'bookings' ? 'bold' : 'normal',
-                    color: view === 'bookings' ? '#ff1493' : '#333',
+                  className="nav-link"
+                  onClick={() => navigate('/bookings')}
+                  style={{
+                    fontWeight: pathname === '/bookings' ? 'bold' : 'normal',
+                    color: pathname === '/bookings' ? '#ff1493' : '#333',
                     marginRight: '15px'
                   }}
                 >
                   My Bookings
                 </button>
-                <button 
+                <button
                   type="button"
-                  className="nav-link" 
-                  onClick={() => setView('settings')}
-                  style={{ 
-                    fontWeight: view === 'settings' ? 'bold' : 'normal',
-                    color: view === 'settings' ? '#ff1493' : '#333',
+                  className="nav-link"
+                  onClick={() => navigate('/settings')}
+                  style={{
+                    fontWeight: pathname === '/settings' ? 'bold' : 'normal',
+                    color: pathname === '/settings' ? '#ff1493' : '#333',
                     marginRight: '15px'
                   }}
                 >
@@ -93,50 +105,40 @@ function App() {
         </header>
 
         <main className="hero">
-          <h1>
-            {view === 'landing' && 'Find your next workout.'}
-            {view === 'search' && 'Find your next workout.'}
-            {view === 'gyms' && 'Explore our gyms.'}
-            {view === 'bookings' && 'Your reserved classes.'}
-            {view === 'settings' && 'Your account settings.'}
-          </h1>
-          <p>
-            {view === 'landing' && 'The easiest way to find and book your favorite gym classes.'}
-            {view === 'search' && 'Boka makes it easy to discover and book gym classes at your favorite local studios.'}
-            {view === 'gyms' && 'Discover the best fitness locations in your area and see what they have to offer.'}
-            {view === 'bookings' && 'Keep track of your upcoming sessions and manage your fitness schedule in one place.'}
-            {view === 'settings' && 'Manage your personal information and account preferences.'}
-          </p>
+          <h1>{title}</h1>
+          <p>{subtitle}</p>
         </main>
 
         <section className="card">
-          {view === 'landing' && (
-            <div className="landing-choices" style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px' }}>
-              <button 
-                className="btn-primary" 
-                style={{ width: 'auto', padding: '1.5rem 3rem', fontSize: '1.2rem' }}
-                onClick={() => setView('search')}
-              >
-                Search Classes
-              </button>
-              <button 
-                className="btn-primary" 
-                style={{ width: 'auto', padding: '1.5rem 3rem', fontSize: '1.2rem', backgroundColor: '#333' }}
-                onClick={() => setView('gyms')}
-              >
-                Find Gyms
-              </button>
-            </div>
-          )}
-          {view === 'search' && <ClassSearch isLoggedIn={user !== null} />}
-          {view === 'gyms' && <GymList />}
-          {view === 'bookings' && <MyBookings onCancelSuccess={() => {}} />}
-          {view === 'settings' && <UserSettings onLogout={fetchUser} onBack={() => setView('landing')} />}
+          <Routes>
+            <Route path="/" element={
+              <div className="landing-choices" style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px' }}>
+                <button
+                  className="btn-primary"
+                  style={{ width: 'auto', padding: '1.5rem 3rem', fontSize: '1.2rem' }}
+                  onClick={() => navigate('/search')}
+                >
+                  Search Classes
+                </button>
+                <button
+                  className="btn-primary"
+                  style={{ width: 'auto', padding: '1.5rem 3rem', fontSize: '1.2rem', backgroundColor: '#333' }}
+                  onClick={() => navigate('/gyms')}
+                >
+                  Find Gyms
+                </button>
+              </div>
+            } />
+            <Route path="/search" element={<ClassSearch isLoggedIn={user !== null} />} />
+            <Route path="/gyms" element={<GymList />} />
+            <Route path="/bookings" element={protectedElement(<MyBookings onCancelSuccess={() => {}} />)} />
+            <Route path="/settings" element={protectedElement(<UserSettings onLogout={fetchUser} />)} />
+          </Routes>
         </section>
       </div>
 
-      <RegistrationModal 
-        isOpen={isRegisterModalOpen} 
+      <RegistrationModal
+        isOpen={isRegisterModalOpen}
         onClose={() => setIsRegisterModalOpen(false)}
         onSuccess={fetchUser}
       />
