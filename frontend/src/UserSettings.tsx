@@ -21,6 +21,7 @@ const UserSettings: React.FC<UserSettingsProps> = ({ onLogout }) => {
     const navigate = useNavigate();
     const toast = useToast();
     const [confirmingDelete, setConfirmingDelete] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const [user, setUser] = useState<UserResponse | null>(null);
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -81,20 +82,27 @@ const UserSettings: React.FC<UserSettingsProps> = ({ onLogout }) => {
                 setMessage('Profile updated successfully!');
                 setPassword('');
             } else {
-                if (typeof data === 'object' && data !== null) {
+                if (typeof data === 'object' && data !== null && !data.message) {
                     setErrors(data as Record<string, string>);
+                    toast.error('Failed to update profile.');
                 } else {
-                    setErrors({ general: data.message || 'Failed to update profile.' });
+                    const msg = data.message || 'Failed to update profile.';
+                    setErrors({ general: msg });
+                    toast.error(msg);
                 }
             }
         } catch {
-            setErrors({ general: 'An error occurred while updating profile.' });
+            const msg = 'An error occurred while updating profile.';
+            setErrors({ general: msg });
+            toast.error(msg);
         } finally {
             setSaving(false);
         }
     };
 
     const handleDeleteAccount = async () => {
+        if (deleting) return;
+        setDeleting(true);
         try {
             const response = await fetch('/api/users/me', {
                 method: 'DELETE'
@@ -108,6 +116,8 @@ const UserSettings: React.FC<UserSettingsProps> = ({ onLogout }) => {
             }
         } catch {
             toast.error('An error occurred while deleting account.');
+        } finally {
+            setDeleting(false);
         }
     };
 
@@ -205,13 +215,15 @@ const UserSettings: React.FC<UserSettingsProps> = ({ onLogout }) => {
                     <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
                         <button
                             onClick={handleDeleteAccount}
-                            style={{ padding: '10px 20px', backgroundColor: '#d32f2f', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
+                            disabled={deleting}
+                            style={{ padding: '10px 20px', backgroundColor: '#d32f2f', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.7 : 1 }}
                         >
-                            Yes, delete my account
+                            {deleting ? 'Deleting...' : 'Yes, delete my account'}
                         </button>
                         <button
                             onClick={() => setConfirmingDelete(false)}
-                            style={{ padding: '10px 20px', backgroundColor: '#fff', color: '#333', border: '1px solid #ccc', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
+                            disabled={deleting}
+                            style={{ padding: '10px 20px', backgroundColor: '#fff', color: '#333', border: '1px solid #ccc', borderRadius: '4px', fontWeight: 'bold', cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.7 : 1 }}
                         >
                             Cancel
                         </button>
