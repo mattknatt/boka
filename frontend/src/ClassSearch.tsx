@@ -1,4 +1,5 @@
 import React, {useState, useRef, useEffect, useCallback} from 'react';
+import { useToast } from './Toast';
 
 interface GymClass {
     id: number;
@@ -31,12 +32,14 @@ interface ClassSearchProps {
 }
 
 const ClassSearch: React.FC<ClassSearchProps> = ({isLoggedIn}) => {
+    const toast = useToast();
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<GymClass[]>([]);
     const [loading, setLoading] = useState(false);
     const [bookingLoading, setBookingLoading] = useState<Record<number, boolean>>({});
     const [error, setError] = useState<string | null>(null);
     const [hasSearched, setHasSearched] = useState(false);
+    const [confirmingCancelId, setConfirmingCancelId] = useState<number | null>(null);
 
     // Pagination state
     const [page, setPage] = useState(0);
@@ -129,14 +132,14 @@ const ClassSearch: React.FC<ClassSearchProps> = ({isLoggedIn}) => {
             });
 
             if (response.ok) {
-                alert('Booking successful!');
+                toast.success('Class booked!');
                 performSearch(query, page);
             } else {
                 const data = await response.json();
-                setError(data.message || 'Booking failed.');
+                toast.error(data.message || 'Booking failed.');
             }
         } catch {
-            setError('An error occurred while booking.');
+            toast.error('An error occurred while booking.');
         } finally {
             setBookingLoading(prev => ({...prev, [classId]: false}));
         }
@@ -145,10 +148,7 @@ const ClassSearch: React.FC<ClassSearchProps> = ({isLoggedIn}) => {
     const handleCancelBooking = async (classId: number) => {
         if (!isLoggedIn) return;
 
-        if (!window.confirm('Are you sure you want to cancel this booking?')) {
-            return;
-        }
-
+        setConfirmingCancelId(null);
         setBookingLoading(prev => ({...prev, [classId]: true}));
         setError(null);
 
@@ -158,14 +158,14 @@ const ClassSearch: React.FC<ClassSearchProps> = ({isLoggedIn}) => {
             });
 
             if (response.ok) {
-                alert('Booking cancelled!');
+                toast.success('Booking cancelled.');
                 performSearch(query, page);
             } else {
                 const data = await response.json();
-                setError(data.message || 'Failed to cancel booking.');
+                toast.error(data.message || 'Failed to cancel booking.');
             }
         } catch {
-            setError('An error occurred while cancelling the booking.');
+            toast.error('An error occurred while cancelling the booking.');
         } finally {
             setBookingLoading(prev => ({...prev, [classId]: false}));
         }
@@ -299,8 +299,24 @@ const ClassSearch: React.FC<ClassSearchProps> = ({isLoggedIn}) => {
                                             </div>
 
                                             {hasBooked ? (
+                                                confirmingCancelId === item.id ? (
+                                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                                        <button
+                                                            onClick={() => handleCancelBooking(item.id)}
+                                                            style={{ flex: 1, padding: '8px', borderRadius: '4px', border: 'none', backgroundColor: '#ff1493', color: 'white', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer' }}
+                                                        >
+                                                            Yes, cancel
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setConfirmingCancelId(null)}
+                                                            style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #ccc', backgroundColor: 'white', color: '#333', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer' }}
+                                                        >
+                                                            Keep
+                                                        </button>
+                                                    </div>
+                                                ) : (
                                                 <button
-                                                    onClick={() => handleCancelBooking(item.id)}
+                                                    onClick={() => setConfirmingCancelId(item.id)}
                                                     disabled={isLoading}
                                                     style={{
                                                         width: '100%',
@@ -318,6 +334,7 @@ const ClassSearch: React.FC<ClassSearchProps> = ({isLoggedIn}) => {
                                                 >
                                                     {isLoading ? '...' : 'Cancel Booking'}
                                                 </button>
+                                                )
                                             ) : (
                                                 <button
                                                     onClick={() => handleBookClass(item.id)}

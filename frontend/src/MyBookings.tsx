@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useToast } from './Toast';
 
 interface UserBooking {
     bookingId: number;
@@ -14,10 +15,12 @@ interface MyBookingsProps {
 }
 
 const MyBookings: React.FC<MyBookingsProps> = ({ onCancelSuccess }) => {
+    const toast = useToast();
     const [bookings, setBookings] = useState<UserBooking[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [cancellingId, setCancellingId] = useState<number | null>(null);
+    const [confirmingId, setConfirmingId] = useState<number | null>(null);
 
     const fetchBookings = async () => {
         setLoading(true);
@@ -41,10 +44,7 @@ const MyBookings: React.FC<MyBookingsProps> = ({ onCancelSuccess }) => {
     }, []);
 
     const handleCancel = async (bookingId: number, gymClassId: number) => {
-        if (!window.confirm('Are you sure you want to cancel this booking?')) {
-            return;
-        }
-
+        setConfirmingId(null);
         setCancellingId(bookingId);
         try {
             const response = await fetch(`/api/bookings/${gymClassId}`, {
@@ -52,14 +52,14 @@ const MyBookings: React.FC<MyBookingsProps> = ({ onCancelSuccess }) => {
             });
 
             if (response.ok) {
-                alert('Booking cancelled!');
+                toast.success('Booking cancelled.');
                 fetchBookings();
                 onCancelSuccess();
             } else {
-                alert('Failed to cancel booking.');
+                toast.error('Failed to cancel booking.');
             }
         } catch {
-            alert('An error occurred while cancelling.');
+            toast.error('An error occurred while cancelling.');
         } finally {
             setCancellingId(null);
         }
@@ -100,25 +100,42 @@ const MyBookings: React.FC<MyBookingsProps> = ({ onCancelSuccess }) => {
                                 hour: '2-digit',
                                 minute: '2-digit'
                             })}</p>
-                            <button
-                                onClick={() => handleCancel(booking.bookingId, booking.gymClassId)}
-                                disabled={cancellingId === booking.bookingId}
-                                style={{
-                                    marginTop: '15px',
-                                    width: '100%',
-                                    padding: '10px',
-                                    borderRadius: '6px',
-                                    border: '2px solid #ff1493',
-                                    backgroundColor: 'transparent',
-                                    color: '#ff1493',
-                                    fontWeight: '600',
-                                    cursor: cancellingId === booking.bookingId ? 'not-allowed' : 'pointer',
-                                    transition: 'all 0.2s',
-                                    opacity: cancellingId === booking.bookingId ? 0.7 : 1
-                                }}
-                            >
-                                {cancellingId === booking.bookingId ? 'Cancelling...' : 'Cancel Booking'}
-                            </button>
+                            {confirmingId === booking.bookingId ? (
+                                <div style={{ display: 'flex', gap: '8px', marginTop: '15px' }}>
+                                    <button
+                                        onClick={() => handleCancel(booking.bookingId, booking.gymClassId)}
+                                        style={{ flex: 1, padding: '10px', borderRadius: '6px', border: 'none', backgroundColor: '#ff1493', color: 'white', fontWeight: '600', cursor: 'pointer' }}
+                                    >
+                                        Yes, cancel
+                                    </button>
+                                    <button
+                                        onClick={() => setConfirmingId(null)}
+                                        style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ccc', backgroundColor: 'white', color: '#333', fontWeight: '600', cursor: 'pointer' }}
+                                    >
+                                        Keep
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => setConfirmingId(booking.bookingId)}
+                                    disabled={cancellingId === booking.bookingId}
+                                    style={{
+                                        marginTop: '15px',
+                                        width: '100%',
+                                        padding: '10px',
+                                        borderRadius: '6px',
+                                        border: '2px solid #ff1493',
+                                        backgroundColor: 'transparent',
+                                        color: '#ff1493',
+                                        fontWeight: '600',
+                                        cursor: cancellingId === booking.bookingId ? 'not-allowed' : 'pointer',
+                                        transition: 'all 0.2s',
+                                        opacity: cancellingId === booking.bookingId ? 0.7 : 1
+                                    }}
+                                >
+                                    {cancellingId === booking.bookingId ? 'Cancelling...' : 'Cancel Booking'}
+                                </button>
+                            )}
                         </li>
                     ))}
                 </ul>
