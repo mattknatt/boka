@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from './Toast';
 
 interface UserResponse {
     id: number;
@@ -18,6 +19,9 @@ interface UserSettingsProps {
 
 const UserSettings: React.FC<UserSettingsProps> = ({ onLogout }) => {
     const navigate = useNavigate();
+    const toast = useToast();
+    const [confirmingDelete, setConfirmingDelete] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const [user, setUser] = useState<UserResponse | null>(null);
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -74,40 +78,46 @@ const UserSettings: React.FC<UserSettingsProps> = ({ onLogout }) => {
             const data = await response.json();
 
             if (response.ok) {
+                toast.success('Profile updated successfully!');
                 setMessage('Profile updated successfully!');
                 setPassword('');
             } else {
-                if (typeof data === 'object' && data !== null) {
+                if (typeof data === 'object' && data !== null && !data.message) {
                     setErrors(data as Record<string, string>);
+                    toast.error('Failed to update profile.');
                 } else {
-                    setErrors({ general: data.message || 'Failed to update profile.' });
+                    const msg = data.message || 'Failed to update profile.';
+                    setErrors({ general: msg });
+                    toast.error(msg);
                 }
             }
         } catch {
-            setErrors({ general: 'An error occurred while updating profile.' });
+            const msg = 'An error occurred while updating profile.';
+            setErrors({ general: msg });
+            toast.error(msg);
         } finally {
             setSaving(false);
         }
     };
 
     const handleDeleteAccount = async () => {
-        if (!window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-            return;
-        }
-
+        if (deleting) return;
+        setDeleting(true);
         try {
             const response = await fetch('/api/users/me', {
                 method: 'DELETE'
             });
 
             if (response.ok) {
-                alert('Account deleted successfully.');
+                toast.success('Account deleted.');
                 onLogout();
             } else {
-                setErrors({ general: 'Failed to delete account.' });
+                toast.error('Failed to delete account.');
             }
         } catch {
-            setErrors({ general: 'An error occurred while deleting account.' });
+            toast.error('An error occurred while deleting account.');
+        } finally {
+            setDeleting(false);
         }
     };
 
@@ -201,21 +211,40 @@ const UserSettings: React.FC<UserSettingsProps> = ({ onLogout }) => {
             <div style={{ marginTop: '50px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
                 <h3>Danger Zone</h3>
                 <p style={{ fontSize: '0.9rem', color: '#666' }}>Once you delete your account, there is no going back. Please be certain.</p>
-                <button 
-                    onClick={handleDeleteAccount}
-                    style={{ 
-                        padding: '10px 20px', 
-                        backgroundColor: '#fff', 
-                        color: '#d32f2f', 
-                        border: '1px solid #d32f2f', 
-                        borderRadius: '4px', 
-                        fontWeight: 'bold', 
-                        cursor: 'pointer',
-                        marginTop: '10px'
-                    }}
-                >
-                    Delete Account
-                </button>
+                {confirmingDelete ? (
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                        <button
+                            onClick={handleDeleteAccount}
+                            disabled={deleting}
+                            style={{ padding: '10px 20px', backgroundColor: '#d32f2f', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.7 : 1 }}
+                        >
+                            {deleting ? 'Deleting...' : 'Yes, delete my account'}
+                        </button>
+                        <button
+                            onClick={() => setConfirmingDelete(false)}
+                            disabled={deleting}
+                            style={{ padding: '10px 20px', backgroundColor: '#fff', color: '#333', border: '1px solid #ccc', borderRadius: '4px', fontWeight: 'bold', cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.7 : 1 }}
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                ) : (
+                    <button
+                        onClick={() => setConfirmingDelete(true)}
+                        style={{
+                            padding: '10px 20px',
+                            backgroundColor: '#fff',
+                            color: '#d32f2f',
+                            border: '1px solid #d32f2f',
+                            borderRadius: '4px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            marginTop: '10px'
+                        }}
+                    >
+                        Delete Account
+                    </button>
+                )}
             </div>
         </div>
     );
