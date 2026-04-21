@@ -7,6 +7,7 @@ import LoginDropdown from './LoginDropdown'
 import RegistrationModal from './RegistrationModal'
 import MyBookings from './MyBookings'
 import UserSettings from './UserSettings'
+import AdminDashboard from './admin/AdminDashboard'
 
 interface UserInfo {
   name: string;
@@ -22,6 +23,7 @@ const HEADINGS: Record<string, { title: string; subtitle: string }> = {
   '/gyms':     { title: 'Explore our gyms.',          subtitle: 'Discover the best fitness locations in your area and see what they have to offer.' },
   '/bookings': { title: 'Your reserved classes.',     subtitle: 'Keep track of your upcoming sessions and manage your fitness schedule in one place.' },
   '/settings': { title: 'Your account settings.',    subtitle: 'Manage your personal information and account preferences.' },
+  '/admin':    { title: 'Admin Dashboard.',           subtitle: 'Manage classes, instructors, and gym schedules.' },
 };
 
 function App() {
@@ -90,6 +92,20 @@ function App() {
                 >
                   Settings
                 </button>
+                {user.role === 'ADMIN' && (
+                  <button
+                    type="button"
+                    className="nav-link"
+                    onClick={() => navigate('/admin')}
+                    style={{
+                      fontWeight: pathname === '/admin' ? 'bold' : 'normal',
+                      color: pathname === '/admin' ? '#ff1493' : '#333',
+                      marginRight: '15px'
+                    }}
+                  >
+                    Admin
+                  </button>
+                )}
                 <span className="user-name">Hey, {user.name}</span>
                 <button className="login-button logout" onClick={handleLogout}>Logout</button>
               </div>
@@ -134,6 +150,9 @@ function App() {
             <Route path="/gyms" element={<GymList />} />
             <Route path="/bookings" element={protectedElement(<MyBookings onCancelSuccess={() => {}} />)} />
             <Route path="/settings" element={protectedElement(<UserSettings onLogout={fetchUser} />)} />
+            <Route path="/admin" element={
+              userLoading ? null : (user?.role === 'ADMIN' ? <AdminDashboard /> : <Navigate to="/" replace />)
+            } />
           </Routes>
           </div>
         </section>

@@ -17,6 +17,7 @@ import com.example.boka.user.domain.UserRole;
 import com.example.boka.user.domain.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -44,11 +45,19 @@ public class DataSeeder implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
     private final Random random = new Random();
 
+    @Value("${ADMIN_EMAIL:admin@boka.se}")
+    private String adminEmail;
+
+    @Value("${ADMIN_PASSWORD:password123}")
+    private String adminPassword;
+
     @Override
     @Transactional
     public void run(String... args) {
-        if (userRepository.count() > 0 || classTypeRepository.count() > 0 || gymRepository.count() > 0) {
-            log.info("Database already contains data — skipping seeding.");
+        upsertAdminUser();
+
+        if (gymRepository.count() > 0 || classTypeRepository.count() > 0) {
+            log.info("Database already contains demo data — skipping seeding.");
             return;
         }
 
@@ -70,7 +79,6 @@ public class DataSeeder implements CommandLineRunner {
         }
 
         // ── Users ────────────────────────────────────────────────
-        User admin = createUser("admin@boka.se", "Admin", "Adminsson", UserRole.ADMIN, "070-111-1111");
         User instructor1 = createUser("anna@boka.se", "Anna", "Johansson", UserRole.INSTRUCTOR, "070-222-2222");
         User instructor2 = createUser("erik@boka.se", "Erik", "Lindberg", UserRole.INSTRUCTOR, "070-333-3333");
         User instructor3 = createUser("sara@boka.se", "Sara", "Nilsson", UserRole.INSTRUCTOR, "070-444-4444");
@@ -83,7 +91,7 @@ public class DataSeeder implements CommandLineRunner {
             createUser("johan@example.com", "Johan", "Persson", UserRole.MEMBER, "070-999-9999")
         );
 
-        userRepository.saveAll(List.of(admin, instructor1, instructor2, instructor3));
+        userRepository.saveAll(List.of(instructor1, instructor2, instructor3));
         userRepository.saveAll(members);
 
         // ── Class Types ──────────────────────────────────────────
@@ -114,6 +122,28 @@ public class DataSeeder implements CommandLineRunner {
         gymClassRepository.saveAll(allGymClasses);
 
         log.info("Database seeding complete!");
+    }
+
+    private void upsertAdminUser() {
+        userRepository.findByEmail(adminEmail).ifPresentOrElse(
+            existing -> {
+                existing.setPasswordHash(passwordEncoder.encode(adminPassword));
+                userRepository.save(existing);
+                log.info("Admin credentials refreshed for: {}", adminEmail);
+            },
+            () -> {
+                User admin = new User();
+                admin.setEmail(adminEmail);
+                admin.setPasswordHash(passwordEncoder.encode(adminPassword));
+                admin.setFirstName("Admin");
+                admin.setLastName("User");
+                admin.setRole(UserRole.ADMIN);
+                admin.setIsActive(true);
+                admin.setAuthProvider(AuthProvider.LOCAL);
+                userRepository.save(admin);
+                log.info("Admin user created: {}", adminEmail);
+            }
+        );
     }
 
     private Gym createGymEntity(String name, String address, Double lat, Double lon) {
