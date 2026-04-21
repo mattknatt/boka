@@ -110,6 +110,7 @@ function App() {
         </main>
 
         <section className="card">
+          <div key={pathname} className="route-transition">
           <Routes>
             <Route path="/" element={
               <div className="landing-choices" style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px' }}>
@@ -134,6 +135,7 @@ function App() {
             <Route path="/bookings" element={protectedElement(<MyBookings onCancelSuccess={() => {}} />)} />
             <Route path="/settings" element={protectedElement(<UserSettings onLogout={fetchUser} />)} />
           </Routes>
+          </div>
         </section>
       </div>
 

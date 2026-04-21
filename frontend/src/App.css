@@ -190,6 +190,12 @@
     justify-content: center;
     align-items: center;
     z-index: 2000;
+    animation: overlay-in 0.2s ease;
+}
+
+@keyframes overlay-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
 
 .modal-content {
@@ -199,6 +205,12 @@
     width: 100%;
     max-width: 400px;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    animation: modal-in 0.25s ease;
+}
+
+@keyframes modal-in {
+    from { opacity: 0; transform: translateY(16px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .modal-header {
@@ -305,6 +317,15 @@
 .card {
     padding: 2em;
     width: 80%;
+}
+
+.route-transition {
+    animation: route-in 0.25s ease;
+}
+
+@keyframes route-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 @media (max-width: 768px) {
