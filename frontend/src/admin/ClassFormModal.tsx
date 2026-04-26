@@ -45,15 +45,23 @@ interface Props {
   onSaved: () => void;
 }
 
+function pad(n: number): string {
+  return String(n).padStart(2, '0');
+}
+
 function toDatetimeLocal(iso: string): string {
-  return iso.replace('T', 'T').slice(0, 16);
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 function addMinutes(datetime: string, minutes: number): string {
   if (!datetime) return '';
-  const d = new Date(datetime);
+  const [datePart, timePart] = datetime.split('T');
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hours, mins] = timePart.split(':').map(Number);
+  const d = new Date(year, month - 1, day, hours, mins);
   d.setMinutes(d.getMinutes() + minutes);
-  return d.toISOString().slice(0, 16);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 const ClassFormModal: React.FC<Props> = ({ editingClass, classTypes, instructors, gyms, onClose, onSaved }) => {
