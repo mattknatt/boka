@@ -58,7 +58,7 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/index.html", "/search", "/gyms", "/bookings", "/settings", "/admin", "/static/**", "/assets/**", "/api/classes/**", "/api/gyms/**", "/api/auth/me", "/api/auth/register").permitAll()
+                .requestMatchers("/", "/index.html", "/search", "/gyms", "/bookings", "/settings", "/admin", "/static/**", "/assets/**", "/api/classes/**", "/api/gyms/**", "/api/auth/me", "/api/auth/register", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )

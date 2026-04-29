@@ -10,10 +10,12 @@ import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
+@Tag(name = "Classes", description = "Search and browse gym classes")
 @RestController
 @RequestMapping("/api/classes")
 @RequiredArgsConstructor
