@@ -26,4 +26,6 @@ public interface GymClassRepository extends JpaRepository<GymClass, Long> {
     Page<GymClass> findByClassType_IdInAndStatusAndStartTimeAfter(
             List<Long> classTypeIds, ClassStatus status, LocalDateTime time, Pageable pageable
     );
+
+    Page<GymClass> findByStatus(ClassStatus status, Pageable pageable);
 }

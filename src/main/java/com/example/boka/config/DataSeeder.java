@@ -17,14 +17,17 @@ import com.example.boka.user.domain.UserRole;
 import com.example.boka.user.domain.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -40,15 +43,27 @@ public class DataSeeder implements CommandLineRunner {
     private final BookingRepository bookingRepository;
     private final GymRepository gymRepository;
     private final GymService gymService;
-    private final GymInfoRepository gymInfoRepository; // For manual cache sync
+    private final GymInfoRepository gymInfoRepository;
     private final PasswordEncoder passwordEncoder;
+    private final Environment environment;
     private final Random random = new Random();
+
+    @Value("${ADMIN_EMAIL:admin@boka.se}")
+    private String adminEmail;
+
+    @Value("${ADMIN_PASSWORD:}")
+    private String adminPassword;
+
+    @Value("${ADMIN_PASSWORD_FORCE_SYNC:false}")
+    private boolean adminPasswordForceSync;
 
     @Override
     @Transactional
     public void run(String... args) {
-        if (userRepository.count() > 0 || classTypeRepository.count() > 0 || gymRepository.count() > 0) {
-            log.info("Database already contains data — skipping seeding.");
+        upsertAdminUser();
+
+        if (gymRepository.count() > 0 || classTypeRepository.count() > 0) {
+            log.info("Database already contains demo data — skipping seeding.");
             return;
         }
 
@@ -70,7 +85,6 @@ public class DataSeeder implements CommandLineRunner {
         }
 
         // ── Users ────────────────────────────────────────────────
-        User admin = createUser("admin@boka.se", "Admin", "Adminsson", UserRole.ADMIN, "070-111-1111");
         User instructor1 = createUser("anna@boka.se", "Anna", "Johansson", UserRole.INSTRUCTOR, "070-222-2222");
         User instructor2 = createUser("erik@boka.se", "Erik", "Lindberg", UserRole.INSTRUCTOR, "070-333-3333");
         User instructor3 = createUser("sara@boka.se", "Sara", "Nilsson", UserRole.INSTRUCTOR, "070-444-4444");
@@ -83,7 +97,7 @@ public class DataSeeder implements CommandLineRunner {
             createUser("johan@example.com", "Johan", "Persson", UserRole.MEMBER, "070-999-9999")
         );
 
-        userRepository.saveAll(List.of(admin, instructor1, instructor2, instructor3));
+        userRepository.saveAll(List.of(instructor1, instructor2, instructor3));
         userRepository.saveAll(members);
 
         // ── Class Types ──────────────────────────────────────────
@@ -114,6 +128,49 @@ public class DataSeeder implements CommandLineRunner {
         gymClassRepository.saveAll(allGymClasses);
 
         log.info("Database seeding complete!");
+    }
+
+    private static final String DEV_FALLBACK_PASSWORD = "password123";
+
+    private void upsertAdminUser() {
+        if (adminPassword == null || adminPassword.isBlank()) {
+            boolean isDevOrTest = Arrays.stream(environment.getActiveProfiles())
+                    .anyMatch(p -> p.equals("dev") || p.equals("test"));
+            if (!isDevOrTest) {
+                throw new IllegalStateException(
+                        "ADMIN_PASSWORD environment variable must be set in non-dev/test profiles");
+            }
+            log.warn("ADMIN_PASSWORD not set — using insecure dev fallback. Do NOT use in production.");
+            adminPassword = DEV_FALLBACK_PASSWORD;
+        }
+
+        userRepository.findByEmail(adminEmail).ifPresentOrElse(
+            existing -> {
+                if (passwordEncoder.matches(adminPassword, existing.getPasswordHash())) {
+                    log.debug("Admin password unchanged — skipping write for: {}", adminEmail);
+                    return;
+                }
+                if (!adminPasswordForceSync) {
+                    log.warn("Admin password mismatch detected for {} but ADMIN_PASSWORD_FORCE_SYNC is false — skipping overwrite.", adminEmail);
+                    return;
+                }
+                existing.setPasswordHash(passwordEncoder.encode(adminPassword));
+                userRepository.save(existing);
+                log.info("Admin password force-synced for: {}", adminEmail);
+            },
+            () -> {
+                User admin = new User();
+                admin.setEmail(adminEmail);
+                admin.setPasswordHash(passwordEncoder.encode(adminPassword));
+                admin.setFirstName("Admin");
+                admin.setLastName("User");
+                admin.setRole(UserRole.ADMIN);
+                admin.setIsActive(true);
+                admin.setAuthProvider(AuthProvider.LOCAL);
+                userRepository.save(admin);
+                log.info("Admin user created: {}", adminEmail);
+            }
+        );
     }
 
     private Gym createGymEntity(String name, String address, Double lat, Double lon) {

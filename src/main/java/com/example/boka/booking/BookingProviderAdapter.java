@@ -1,10 +1,12 @@
 package com.example.boka.booking;
 
+import com.example.boka.booking.domain.Booking;
 import com.example.boka.booking.domain.BookingStatus;
 import com.example.boka.booking.domain.BookingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,5 +49,16 @@ public class BookingProviderAdapter implements BookingProviderPort {
             return Set.of();
         }
         return bookingRepository.findBookedGymClassIds(userId, gymClassIds, BookingStatus.CONFIRMED);
+    }
+
+    @Override
+    public void cancelBookingsForClass(Long classId) {
+        List<Booking> confirmed = bookingRepository.findByGymClassIdAndStatus(classId, BookingStatus.CONFIRMED);
+        LocalDateTime now = LocalDateTime.now();
+        for (Booking b : confirmed) {
+            b.setStatus(BookingStatus.CANCELLED);
+            b.setCancelledAt(now);
+        }
+        bookingRepository.saveAll(confirmed);
     }
 }

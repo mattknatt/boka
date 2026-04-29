@@ -7,7 +7,9 @@ import com.example.boka.user.domain.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -25,5 +27,19 @@ public class InstructorProviderAdapter implements InstructorProviderPort {
                         User::getId,
                         user -> new InstructorDetails(user.getId(), user.getFirstName(), user.getLastName())
                 ));
+    }
+
+    @Override
+    public List<InstructorDetails> getAllInstructors() {
+        return userRepository.findByRole(UserRole.INSTRUCTOR).stream()
+                .map(user -> new InstructorDetails(user.getId(), user.getFirstName(), user.getLastName()))
+                .toList();
+    }
+
+    @Override
+    public Optional<InstructorDetails> findInstructorById(Long id) {
+        return userRepository.findById(id)
+                .filter(user -> user.getRole() == UserRole.INSTRUCTOR)
+                .map(user -> new InstructorDetails(user.getId(), user.getFirstName(), user.getLastName()));
     }
 }
