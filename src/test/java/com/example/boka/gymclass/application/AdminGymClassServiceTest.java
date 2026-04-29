@@ -273,18 +273,31 @@ class AdminGymClassServiceTest {
     void updateClass_StartTimeEqualsEndTime_ThrowsIllegalArgumentException() {
         GymClass existing = gymClass(ClassStatus.SCHEDULED);
         when(gymClassRepository.findById(CLASS_ID)).thenReturn(Optional.of(existing));
+        when(bookingProviderPort.getBookingCounts(anySet())).thenReturn(Map.of());
 
-        // Set start and end to the same time
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> adminGymClassService.updateClass(CLASS_ID,
                         new UpdateGymClassRequest(null, null, null, START, START, null)));
         assertEquals("Start time must be before end time", ex.getMessage());
     }
 
+    @Test
+    void updateClass_CapacityBelowBookingCount_ThrowsIllegalArgumentException() {
+        GymClass existing = gymClass(ClassStatus.SCHEDULED);
+        when(gymClassRepository.findById(CLASS_ID)).thenReturn(Optional.of(existing));
+        when(bookingProviderPort.getBookingCounts(anySet())).thenReturn(Map.of(CLASS_ID, 15));
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> adminGymClassService.updateClass(CLASS_ID,
+                        new UpdateGymClassRequest(null, null, null, null, null, 10)));
+        assertTrue(ex.getMessage().contains("Capacity cannot be lower than current confirmed bookings"));
+        verify(gymClassRepository, never()).save(any());
+    }
+
     // --- cancelClass ---
 
     @Test
-    void cancelClass_Successful_SetsStatusToCancelled() {
+    void cancelClass_Successful_SetsStatusToCancelledAndCancelsBookings() {
         GymClass gc = gymClass(ClassStatus.SCHEDULED);
         when(gymClassRepository.findById(CLASS_ID)).thenReturn(Optional.of(gc));
         when(gymClassRepository.save(any())).thenReturn(gc);
@@ -293,6 +306,7 @@ class AdminGymClassServiceTest {
 
         assertEquals(ClassStatus.CANCELLED, gc.getStatus());
         verify(gymClassRepository).save(gc);
+        verify(bookingProviderPort).cancelBookingsForClass(CLASS_ID);
     }
 
     @Test

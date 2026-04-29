@@ -20,12 +20,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -41,15 +43,19 @@ public class DataSeeder implements CommandLineRunner {
     private final BookingRepository bookingRepository;
     private final GymRepository gymRepository;
     private final GymService gymService;
-    private final GymInfoRepository gymInfoRepository; // For manual cache sync
+    private final GymInfoRepository gymInfoRepository;
     private final PasswordEncoder passwordEncoder;
+    private final Environment environment;
     private final Random random = new Random();
 
     @Value("${ADMIN_EMAIL:admin@boka.se}")
     private String adminEmail;
 
-    @Value("${ADMIN_PASSWORD:password123}")
+    @Value("${ADMIN_PASSWORD:}")
     private String adminPassword;
+
+    @Value("${ADMIN_PASSWORD_FORCE_SYNC:false}")
+    private boolean adminPasswordForceSync;
 
     @Override
     @Transactional
@@ -124,12 +130,33 @@ public class DataSeeder implements CommandLineRunner {
         log.info("Database seeding complete!");
     }
 
+    private static final String DEV_FALLBACK_PASSWORD = "password123";
+
     private void upsertAdminUser() {
+        if (adminPassword == null || adminPassword.isBlank()) {
+            boolean isDevOrTest = Arrays.stream(environment.getActiveProfiles())
+                    .anyMatch(p -> p.equals("dev") || p.equals("test"));
+            if (!isDevOrTest) {
+                throw new IllegalStateException(
+                        "ADMIN_PASSWORD environment variable must be set in non-dev/test profiles");
+            }
+            log.warn("ADMIN_PASSWORD not set — using insecure dev fallback. Do NOT use in production.");
+            adminPassword = DEV_FALLBACK_PASSWORD;
+        }
+
         userRepository.findByEmail(adminEmail).ifPresentOrElse(
             existing -> {
+                if (passwordEncoder.matches(adminPassword, existing.getPasswordHash())) {
+                    log.debug("Admin password unchanged — skipping write for: {}", adminEmail);
+                    return;
+                }
+                if (!adminPasswordForceSync) {
+                    log.warn("Admin password mismatch detected for {} but ADMIN_PASSWORD_FORCE_SYNC is false — skipping overwrite.", adminEmail);
+                    return;
+                }
                 existing.setPasswordHash(passwordEncoder.encode(adminPassword));
                 userRepository.save(existing);
-                log.info("Admin credentials refreshed for: {}", adminEmail);
+                log.info("Admin password force-synced for: {}", adminEmail);
             },
             () -> {
                 User admin = new User();

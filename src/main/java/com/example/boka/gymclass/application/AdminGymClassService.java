@@ -104,16 +104,23 @@ public class AdminGymClassService {
             gymClass.setGymId(req.gymId());
         }
 
+        int bookingCount = bookingProviderPort.getBookingCounts(Set.of(id)).getOrDefault(id, 0);
+
         if (req.startTime() != null) gymClass.setStartTime(req.startTime());
         if (req.endTime() != null) gymClass.setEndTime(req.endTime());
-        if (req.capacity() != null) gymClass.setCapacity(req.capacity());
+        if (req.capacity() != null) {
+            if (req.capacity() < bookingCount) {
+                throw new IllegalArgumentException(
+                        "Capacity cannot be lower than current confirmed bookings (" + bookingCount + ")");
+            }
+            gymClass.setCapacity(req.capacity());
+        }
 
         if (!gymClass.getStartTime().isBefore(gymClass.getEndTime())) {
             throw new IllegalArgumentException("Start time must be before end time");
         }
 
         GymClass saved = gymClassRepository.save(gymClass);
-        int bookingCount = bookingProviderPort.getBookingCounts(Set.of(id)).getOrDefault(id, 0);
         return toResponse(saved, bookingCount);
     }
 
@@ -128,6 +135,7 @@ public class AdminGymClassService {
 
         gymClass.setStatus(ClassStatus.CANCELLED);
         gymClassRepository.save(gymClass);
+        bookingProviderPort.cancelBookingsForClass(id);
     }
 
     private Page<AdminGymClassResponse> enrich(Page<GymClass> page) {

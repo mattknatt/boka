@@ -107,7 +107,11 @@ const ClassFormModal: React.FC<Props> = ({ editingClass, classTypes, instructors
         onClose();
       } else {
         const data = await res.json();
-        toast.error(data.message || 'Failed to save class.');
+        const msg = data.errors?.[0]?.defaultMessage
+          ?? data.fieldErrors?.[0]?.defaultMessage
+          ?? data.message
+          ?? 'Failed to save class.';
+        toast.error(msg);
       }
     } catch {
       toast.error('An error occurred.');
