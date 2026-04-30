@@ -6,6 +6,7 @@ import com.example.boka.gymclass.application.AdminGymClassService;
 import com.example.boka.gymclass.application.ClassTypeResponse;
 import com.example.boka.gymclass.application.CreateGymClassRequest;
 import com.example.boka.gymclass.application.UpdateGymClassRequest;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "Admin", description = "Admin-only: manage gym classes, instructors, and class types")
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor

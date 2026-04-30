@@ -12,9 +12,12 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import java.util.HashMap;
 import java.util.Map;
 
+@Tag(name = "Bookings", description = "Create and manage gym class bookings")
 @RestController
 @RequestMapping("/api/bookings")
 @RequiredArgsConstructor
