@@ -158,6 +158,10 @@ function App() {
         </section>
       </div>
 
+      <footer className="site-footer">
+        Boka is an educational project built for learning purposes only — not a real service.
+      </footer>
+
       <RegistrationModal
         isOpen={isRegisterModalOpen}
         onClose={() => setIsRegisterModalOpen(false)}
