@@ -21,15 +21,20 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -57,13 +62,74 @@ public class DataSeeder implements CommandLineRunner {
     @Value("${ADMIN_PASSWORD_FORCE_SYNC:false}")
     private boolean adminPasswordForceSync;
 
+    private static final int WINDOW_DAYS = 30;
+    private static final int[] CLASS_HOURS = {8, 12, 16};
+
     @Override
     @Transactional
     public void run(String... args) {
         upsertAdminUser();
+        seedBaseDataIfEmpty();
+        ensureUpcomingClasses();
+    }
 
+    /**
+     * Maintains a rolling window of gym classes so there are always classes available
+     * from today through {@value #WINDOW_DAYS} days ahead. Idempotent: a day that already
+     * has classes (seeded, topped up, or admin-created) is left untouched, so existing
+     * classes and their bookings are never disturbed. Runs on every boot and daily.
+     */
+    void ensureUpcomingClasses() {
+        List<ClassType> classTypes = classTypeRepository.findAll();
+        List<Gym> gyms = gymRepository.findAll();
+        List<User> instructors = userRepository.findByRole(UserRole.INSTRUCTOR);
+        if (classTypes.isEmpty() || gyms.isEmpty() || instructors.isEmpty()) {
+            log.warn("Skipping rolling class top-up — base data (class types, gyms, or instructors) missing.");
+            return;
+        }
+
+        LocalDate today = LocalDate.now();
+        Set<LocalDate> daysWithClasses = gymClassRepository
+                .findByStartTimeBetween(today.atStartOfDay(), today.plusDays(WINDOW_DAYS).atTime(LocalTime.MAX))
+                .stream()
+                .map(gc -> gc.getStartTime().toLocalDate())
+                .collect(Collectors.toSet());
+
+        List<GymClass> newClasses = new ArrayList<>();
+        for (int day = 0; day <= WINDOW_DAYS; day++) {
+            LocalDate date = today.plusDays(day);
+            if (daysWithClasses.contains(date)) {
+                continue;
+            }
+            for (int hour : CLASS_HOURS) {
+                Gym gym = gyms.get(random.nextInt(gyms.size()));
+                ClassType type = classTypes.get(random.nextInt(classTypes.size()));
+                User instructor = instructors.get(random.nextInt(instructors.size()));
+                newClasses.add(createGymClass(type, instructor.getId(), gym.getId(),
+                        date.atTime(hour, 0), 60, type.getDefaultCapacity()));
+            }
+        }
+
+        if (newClasses.isEmpty()) {
+            log.info("Rolling class window already covers today → +{} days; nothing to add.", WINDOW_DAYS);
+            return;
+        }
+        gymClassRepository.saveAll(newClasses);
+        log.info("Added {} classes across {} day(s) to maintain the rolling {}-day window.",
+                newClasses.size(), newClasses.size() / CLASS_HOURS.length, WINDOW_DAYS);
+    }
+
+    /** Daily top-up so the rolling window advances as time passes, surviving reboots. */
+    @Scheduled(cron = "0 0 3 * * *")
+    @Transactional
+    public void dailyRollingClassTopUp() {
+        log.debug("Running daily rolling class top-up...");
+        ensureUpcomingClasses();
+    }
+
+    private void seedBaseDataIfEmpty() {
         if (gymRepository.count() > 0 || classTypeRepository.count() > 0) {
-            log.info("Database already contains demo data — skipping seeding.");
+            log.info("Base demo data already present — skipping one-time seeding.");
             return;
         }
 
@@ -109,25 +175,8 @@ public class DataSeeder implements CommandLineRunner {
         List<ClassType> classTypes = List.of(yoga, hiit, strength, spinning);
         classTypeRepository.saveAll(classTypes);
 
-        // ── Gym Classes ──────────────────────────────────────────
-        List<GymClass> allGymClasses = new ArrayList<>();
-        LocalDateTime startBase = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
-
-        List<User> instructors = List.of(instructor1, instructor2, instructor3);
-
-        for (int day = 0; day < 14; day++) {
-            LocalDateTime dayDate = startBase.plusDays(day);
-            for (int i = 0; i < 3; i++) {
-                Gym randomGym = gyms.get(random.nextInt(gyms.size()));
-                ClassType randomType = classTypes.get(random.nextInt(classTypes.size()));
-                User randomInstructor = instructors.get(random.nextInt(instructors.size()));
-
-                allGymClasses.add(createGymClass(randomType, randomInstructor.getId(), randomGym.getId(), dayDate.withHour(8 + i * 4), 60, randomType.getDefaultCapacity()));
-            }
-        }
-        gymClassRepository.saveAll(allGymClasses);
-
-        log.info("Database seeding complete!");
+        // Gym classes are created by ensureUpcomingClasses() so they always start "today".
+        log.info("Base demo data seeding complete!");
     }
 
     private static final String DEV_FALLBACK_PASSWORD = "password123";

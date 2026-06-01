@@ -28,4 +28,6 @@ public interface GymClassRepository extends JpaRepository<GymClass, Long> {
     );
 
     Page<GymClass> findByStatus(ClassStatus status, Pageable pageable);
+
+    List<GymClass> findByStartTimeBetween(LocalDateTime start, LocalDateTime end);
 }
