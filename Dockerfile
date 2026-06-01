@@ -20,9 +20,8 @@ FROM eclipse-temurin:25-jre-alpine
 WORKDIR /app
 COPY --from=backend-builder /app/target/*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java",
-  "-Xms128m",
-  "-Xmx384m",
-  "-XX:+UseG1GC",
-  "-XX:MaxRAMPercentage=75",
+ENTRYPOINT ["java", \
+  "-Xms128m", \
+  "-Xmx384m", \
+  "-XX:+UseG1GC", \
   "-jar", "app.jar"]
