@@ -26,7 +26,7 @@ flowchart TD
         GymClass["gymclass module\n(domain + port)"]
         Booking["booking module\n(domain + adapter)"]
         User["user module\n(domain + adapter)"]
-        Security["Spring Security\n(JWT · OAuth2 · BCrypt)"]
+        Security["Spring Security\n(Sessions · OAuth2 · BCrypt)"]
         GymClass <-->|BookingProviderPort| Booking
         GymClass <-->|InstructorProviderPort| User
     end
